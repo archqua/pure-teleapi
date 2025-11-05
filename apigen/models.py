@@ -1,4 +1,5 @@
 import re
+import textwrap
 from typing import IO, List, Optional
 
 from pydantic import BaseModel
@@ -338,9 +339,15 @@ class Api(BaseModel):
         return api
 
     def gen(self, f):
-        f.write(
-            "from typing import Any, List, Optional, Protocol, Union\n\nfrom pydantic import BaseModel, Field\n\n\n"
-        )
+        f.write(textwrap.dedent(
+            """
+            from typing import Any, List, Optional, Protocol, Union
+
+            import pydantic
+            from pydantic import BaseModel, Field
+            """
+        ).strip() + "\n\n")
+        f.write('pydantic_majv = int(pydantic.__version__.split(".")[0])\n\n\n')
         for o in self.objects:
             o.gen(f)
         for u in self.unions:
@@ -350,8 +357,18 @@ class Api(BaseModel):
             '"""InputFile should be file-like object, supported only in api calls, not models"""\nInputFile = Any\n\n'
         )
 
+        f.write(textwrap.dedent(
+            """
+            if pydantic_majv < 2:
+                def model_rebuild(_Model: type) -> None:
+                    _Model.update_forward_refs()
+            else:
+                def model_rebuild(_Model: type) -> None:
+                    _Model.model_rebuild()
+            """
+        ).strip() + "\n\n")
         for o in self.objects:
-            f.write(f"{o.name}.update_forward_refs()\n\n")
+            f.write(f"model_rebuild({o.name})\n\n")
 
         f.write("\n")
 

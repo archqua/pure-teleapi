@@ -1,8 +1,22 @@
 from io import StringIO
 
+import pydantic
+from pydantic import BaseModel
+
 from teleapi.teleapi import Chat, Message, MessageEntity, Teleapi
 from teleapi.teleproxy import TeleError, TeleProxy
 from teleapi.teletransport import ApiResponse, TeleTransport
+
+pydantic_majv = int(pydantic.__version__.split(".")[0])
+
+# in case we need to run tests for both cases
+if pydantic_majv < 2:
+    def model_dump(model: BaseModel) -> dict:
+        return model.dict()
+else:
+    def model_dump(model: BaseModel) -> dict:
+        return model.model_dump()
+
 
 msg = Message(
     message_id=1,
@@ -20,7 +34,7 @@ class TestTransportGood:
         assert params == {"chat_id": 123, "text": "msg", "entities": [{"type": "qq", "offset": 1, "length": 1}]}
         return ApiResponse(
             ok=True,
-            result=msg.dict(),
+            result=model_dump(msg),
         )
 
 

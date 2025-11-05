@@ -1,6 +1,9 @@
 from typing import Any, List, Optional, Protocol, Union
 
+import pydantic
 from pydantic import BaseModel, Field
+
+pydantic_majv = int(pydantic.__version__.split(".")[0])
 
 
 class Update(BaseModel):
@@ -244,6 +247,9 @@ class Chat(BaseModel):
     is_forum: Optional[bool] = None
     """ Optional. True, if the supergroup chat is a forum (has topics enabled) """
 
+    is_direct_messages: Optional[bool] = None
+    """ Optional. True, if the chat is the direct messages chat of a channel """
+
 
 class ChatFullInfo(BaseModel):
     """
@@ -270,6 +276,10 @@ class ChatFullInfo(BaseModel):
     """ The maximum number of reactions that can be set on a message in the
     chat """
 
+    accepted_gift_types: 'AcceptedGiftTypes'
+    """ Information about types of gifts that are accepted by the chat or by
+    the corresponding user for private chats """
+
     title: Optional[str] = None
     """ Optional. Title, for supergroups, channels and group chats """
 
@@ -285,6 +295,9 @@ class ChatFullInfo(BaseModel):
 
     is_forum: Optional[bool] = None
     """ Optional. True, if the supergroup chat is a forum (has topics enabled) """
+
+    is_direct_messages: Optional[bool] = None
+    """ Optional. True, if the chat is the direct messages chat of a channel """
 
     photo: Optional['ChatPhoto'] = None
     """ Optional. Chat photo """
@@ -310,6 +323,10 @@ class ChatFullInfo(BaseModel):
 
     personal_chat: Optional['Chat'] = None
     """ Optional. For private chats, the personal channel of the user """
+
+    parent_chat: Optional['Chat'] = None
+    """ Optional. Information about the corresponding channel chat; for direct
+    messages chats only """
 
     available_reactions: Optional[List['ReactionType']] = None
     """ Optional. List of available reactions allowed in the chat. If omitted,
@@ -367,9 +384,6 @@ class ChatFullInfo(BaseModel):
 
     permissions: Optional['ChatPermissions'] = None
     """ Optional. Default chat member permissions, for groups and supergroups """
-
-    can_send_gift: Optional[bool] = None
-    """ Optional. True, if gifts can be sent to the chat """
 
     can_send_paid_media: Optional[bool] = None
     """ Optional. True, if paid media messages can be sent or forwarded to the
@@ -452,6 +466,10 @@ class Message(BaseModel):
     """ Optional. Unique identifier of a message thread to which the message
     belongs; for supergroups only """
 
+    direct_messages_topic: Optional['DirectMessagesTopic'] = None
+    """ Optional. Information about the direct messages chat topic that
+    contains the message """
+
     from_: Optional['User'] = Field(None, alias="from")
     """ Optional. Sender of the message; may be empty for messages sent to
     channels. For backward compatibility, if the message was sent on
@@ -508,6 +526,10 @@ class Message(BaseModel):
     reply_to_story: Optional['Story'] = None
     """ Optional. For replies to a story, the original story """
 
+    reply_to_checklist_task_id: Optional[int] = None
+    """ Optional. Identifier of the specific checklist task that is being
+    replied to """
+
     via_bot: Optional['User'] = None
     """ Optional. Bot through which the message was sent """
 
@@ -522,6 +544,11 @@ class Message(BaseModel):
     example, as an away or a greeting business message, or as a scheduled
     message """
 
+    is_paid_post: Optional[bool] = None
+    """ Optional. True, if the message is a paid post. Note that such posts
+    must not be deleted for 24 hours to receive the payment and can't be
+    edited. """
+
     media_group_id: Optional[str] = None
     """ Optional. The unique identifier of a media message group this message
     belongs to """
@@ -529,6 +556,10 @@ class Message(BaseModel):
     author_signature: Optional[str] = None
     """ Optional. Signature of the post author for messages in channels, or
     the custom title of an anonymous group administrator """
+
+    paid_star_count: Optional[int] = None
+    """ Optional. The number of Telegram Stars that were paid by the sender of
+    the message to send it """
 
     text: Optional[str] = None
     """ Optional. For text messages, the actual UTF-8 text of the message """
@@ -540,6 +571,11 @@ class Message(BaseModel):
     link_preview_options: Optional['LinkPreviewOptions'] = None
     """ Optional. Options used for link preview generation for the message, if
     it is a text message and link preview options were changed """
+
+    suggested_post_info: Optional['SuggestedPostInfo'] = None
+    """ Optional. Information about suggested post parameters if the message
+    is a suggested post in a channel direct messages chat. If the message
+    is an approved or declined suggested post, then it can't be edited. """
 
     effect_id: Optional[str] = None
     """ Optional. Unique identifier of the message effect added to the message """
@@ -590,6 +626,9 @@ class Message(BaseModel):
 
     has_media_spoiler: Optional[bool] = None
     """ Optional. True, if the message media is covered by a spoiler animation """
+
+    checklist: Optional['Checklist'] = None
+    """ Optional. Message is a checklist """
 
     contact: Optional['Contact'] = None
     """ Optional. Message is a shared contact, information about the contact """
@@ -689,6 +728,12 @@ class Message(BaseModel):
     chat_shared: Optional['ChatShared'] = None
     """ Optional. Service message: a chat was shared with the bot """
 
+    gift: Optional['GiftInfo'] = None
+    """ Optional. Service message: a regular gift was sent or received """
+
+    unique_gift: Optional['UniqueGiftInfo'] = None
+    """ Optional. Service message: a unique gift was sent or received """
+
     connected_website: Optional[str] = None
     """ Optional. The domain name of the website on which the user has logged
     in. More about Telegram Login » """
@@ -711,6 +756,17 @@ class Message(BaseModel):
 
     chat_background_set: Optional['ChatBackground'] = None
     """ Optional. Service message: chat background set """
+
+    checklist_tasks_done: Optional['ChecklistTasksDone'] = None
+    """ Optional. Service message: some tasks in a checklist were marked as
+    done or not done """
+
+    checklist_tasks_added: Optional['ChecklistTasksAdded'] = None
+    """ Optional. Service message: tasks were added to a checklist """
+
+    direct_message_price_changed: Optional['DirectMessagePriceChanged'] = None
+    """ Optional. Service message: the price for paid messages in the
+    corresponding direct messages chat of a channel has changed """
 
     forum_topic_created: Optional['ForumTopicCreated'] = None
     """ Optional. Service message: forum topic created """
@@ -742,6 +798,25 @@ class Message(BaseModel):
     giveaway_completed: Optional['GiveawayCompleted'] = None
     """ Optional. Service message: a giveaway without public winners was
     completed """
+
+    paid_message_price_changed: Optional['PaidMessagePriceChanged'] = None
+    """ Optional. Service message: the price for paid messages has changed in
+    the chat """
+
+    suggested_post_approved: Optional['SuggestedPostApproved'] = None
+    """ Optional. Service message: a suggested post was approved """
+
+    suggested_post_approval_failed: Optional['SuggestedPostApprovalFailed'] = None
+    """ Optional. Service message: approval of a suggested post has failed """
+
+    suggested_post_declined: Optional['SuggestedPostDeclined'] = None
+    """ Optional. Service message: a suggested post was declined """
+
+    suggested_post_paid: Optional['SuggestedPostPaid'] = None
+    """ Optional. Service message: payment for a suggested post was received """
+
+    suggested_post_refunded: Optional['SuggestedPostRefunded'] = None
+    """ Optional. Service message: payment for a suggested post was refunded """
 
     video_chat_scheduled: Optional['VideoChatScheduled'] = None
     """ Optional. Service message: video chat scheduled """
@@ -913,6 +988,9 @@ class ExternalReplyInfo(BaseModel):
     has_media_spoiler: Optional[bool] = None
     """ Optional. True, if the message media is covered by a spoiler animation """
 
+    checklist: Optional['Checklist'] = None
+    """ Optional. Message is a checklist """
+
     contact: Optional['Contact'] = None
     """ Optional. Message is a shared contact, information about the contact """
 
@@ -957,7 +1035,7 @@ class ReplyParameters(BaseModel):
     """ Optional. If the message to be replied to is from a different chat,
     unique identifier for the chat or username of the channel (in the
     format @channelusername). Not supported for messages sent on behalf of
-    a business account. """
+    a business account and messages from channel direct messages chats. """
 
     allow_sending_without_reply: Optional[bool] = None
     """ Optional. Pass True if the message should be sent even if the
@@ -984,6 +1062,9 @@ class ReplyParameters(BaseModel):
     quote_position: Optional[int] = None
     """ Optional. Position of the quote in the original message in UTF-16 code
     units """
+
+    checklist_task_id: Optional[int] = None
+    """ Optional. Identifier of the specific checklist task to be replied to """
 
 
 class MessageOriginUser(BaseModel):
@@ -1516,6 +1597,136 @@ class Poll(BaseModel):
     automatically closed """
 
 
+class ChecklistTask(BaseModel):
+    """
+    Describes a task in a checklist.
+    """
+
+    id: int
+    """ Unique identifier of the task """
+
+    text: str
+    """ Text of the task """
+
+    text_entities: Optional[List['MessageEntity']] = None
+    """ Optional. Special entities that appear in the task text """
+
+    completed_by_user: Optional['User'] = None
+    """ Optional. User that completed the task; omitted if the task wasn't
+    completed """
+
+    completion_date: Optional[int] = None
+    """ Optional. Point in time (Unix timestamp) when the task was completed;
+    0 if the task wasn't completed """
+
+
+class Checklist(BaseModel):
+    """
+    Describes a checklist.
+    """
+
+    title: str
+    """ Title of the checklist """
+
+    tasks: List['ChecklistTask']
+    """ List of tasks in the checklist """
+
+    title_entities: Optional[List['MessageEntity']] = None
+    """ Optional. Special entities that appear in the checklist title """
+
+    others_can_add_tasks: Optional[bool] = None
+    """ Optional. True, if users other than the creator of the list can add
+    tasks to the list """
+
+    others_can_mark_tasks_as_done: Optional[bool] = None
+    """ Optional. True, if users other than the creator of the list can mark
+    tasks as done or not done """
+
+
+class InputChecklistTask(BaseModel):
+    """
+    Describes a task to add to a checklist.
+    """
+
+    id: int
+    """ Unique identifier of the task; must be positive and unique among all
+    task identifiers currently present in the checklist """
+
+    text: str
+    """ Text of the task; 1-100 characters after entities parsing """
+
+    parse_mode: Optional[str] = None
+    """ Optional. Mode for parsing entities in the text. See formatting
+    options for more details. """
+
+    text_entities: Optional[List['MessageEntity']] = None
+    """ Optional. List of special entities that appear in the text, which can
+    be specified instead of parse_mode. Currently, only bold, italic,
+    underline, strikethrough, spoiler, and custom_emoji entities are
+    allowed. """
+
+
+class InputChecklist(BaseModel):
+    """
+    Describes a checklist to create.
+    """
+
+    title: str
+    """ Title of the checklist; 1-255 characters after entities parsing """
+
+    tasks: List['InputChecklistTask']
+    """ List of 1-30 tasks in the checklist """
+
+    parse_mode: Optional[str] = None
+    """ Optional. Mode for parsing entities in the title. See formatting
+    options for more details. """
+
+    title_entities: Optional[List['MessageEntity']] = None
+    """ Optional. List of special entities that appear in the title, which can
+    be specified instead of parse_mode. Currently, only bold, italic,
+    underline, strikethrough, spoiler, and custom_emoji entities are
+    allowed. """
+
+    others_can_add_tasks: Optional[bool] = None
+    """ Optional. Pass True if other users can add tasks to the checklist """
+
+    others_can_mark_tasks_as_done: Optional[bool] = None
+    """ Optional. Pass True if other users can mark tasks as done or not done
+    in the checklist """
+
+
+class ChecklistTasksDone(BaseModel):
+    """
+    Describes a service message about checklist tasks marked as done or
+    not done.
+    """
+
+    checklist_message: Optional['Message'] = None
+    """ Optional. Message containing the checklist whose tasks were marked as
+    done or not done. Note that the Message object in this field will not
+    contain the reply_to_message field even if it itself is a reply. """
+
+    marked_as_done_task_ids: Optional[List[int]] = None
+    """ Optional. Identifiers of the tasks that were marked as done """
+
+    marked_as_not_done_task_ids: Optional[List[int]] = None
+    """ Optional. Identifiers of the tasks that were marked as not done """
+
+
+class ChecklistTasksAdded(BaseModel):
+    """
+    Describes a service message about tasks added to a checklist.
+    """
+
+    tasks: List['ChecklistTask']
+    """ List of tasks added to the checklist """
+
+    checklist_message: Optional['Message'] = None
+    """ Optional. Message containing the checklist to which the tasks were
+    added. Note that the Message object in this field will not contain the
+    reply_to_message field even if it itself is a reply. """
+
+
 class Location(BaseModel):
     """
     This object represents a point on the map.
@@ -1950,6 +2161,122 @@ class VideoChatParticipantsInvited(BaseModel):
     """ New members that were invited to the video chat """
 
 
+class PaidMessagePriceChanged(BaseModel):
+    """
+    Describes a service message about a change in the price of paid
+    messages within a chat.
+    """
+
+    paid_message_star_count: int
+    """ The new number of Telegram Stars that must be paid by non-
+    administrator users of the supergroup chat for each sent message """
+
+
+class DirectMessagePriceChanged(BaseModel):
+    """
+    Describes a service message about a change in the price of direct
+    messages sent to a channel chat.
+    """
+
+    are_direct_messages_enabled: bool
+    """ True, if direct messages are enabled for the channel chat; false
+    otherwise """
+
+    direct_message_star_count: Optional[int] = None
+    """ Optional. The new number of Telegram Stars that must be paid by users
+    for each direct message sent to the channel. Does not apply to users
+    who have been exempted by administrators. Defaults to 0. """
+
+
+class SuggestedPostApproved(BaseModel):
+    """
+    Describes a service message about the approval of a suggested post.
+    """
+
+    send_date: int
+    """ Date when the post will be published """
+
+    suggested_post_message: Optional['Message'] = None
+    """ Optional. Message containing the suggested post. Note that the Message
+    object in this field will not contain the reply_to_message field even
+    if it itself is a reply. """
+
+    price: Optional['SuggestedPostPrice'] = None
+    """ Optional. Amount paid for the post """
+
+
+class SuggestedPostApprovalFailed(BaseModel):
+    """
+    Describes a service message about the failed approval of a suggested
+    post. Currently, only caused by insufficient user funds at the time of
+    approval.
+    """
+
+    price: 'SuggestedPostPrice'
+    """ Expected price of the post """
+
+    suggested_post_message: Optional['Message'] = None
+    """ Optional. Message containing the suggested post whose approval has
+    failed. Note that the Message object in this field will not contain
+    the reply_to_message field even if it itself is a reply. """
+
+
+class SuggestedPostDeclined(BaseModel):
+    """
+    Describes a service message about the rejection of a suggested post.
+    """
+
+    suggested_post_message: Optional['Message'] = None
+    """ Optional. Message containing the suggested post. Note that the Message
+    object in this field will not contain the reply_to_message field even
+    if it itself is a reply. """
+
+    comment: Optional[str] = None
+    """ Optional. Comment with which the post was declined """
+
+
+class SuggestedPostPaid(BaseModel):
+    """
+    Describes a service message about a successful payment for a suggested
+    post.
+    """
+
+    currency: str
+    """ Currency in which the payment was made. Currently, one of “XTR” for
+    Telegram Stars or “TON” for toncoins """
+
+    suggested_post_message: Optional['Message'] = None
+    """ Optional. Message containing the suggested post. Note that the Message
+    object in this field will not contain the reply_to_message field even
+    if it itself is a reply. """
+
+    amount: Optional[int] = None
+    """ Optional. The amount of the currency that was received by the channel
+    in nanotoncoins; for payments in toncoins only """
+
+    star_amount: Optional['StarAmount'] = None
+    """ Optional. The amount of Telegram Stars that was received by the
+    channel; for payments in Telegram Stars only """
+
+
+class SuggestedPostRefunded(BaseModel):
+    """
+    Describes a service message about a payment refund for a suggested
+    post.
+    """
+
+    reason: str
+    """ Reason for the refund. Currently, one of “post_deleted” if the post
+    was deleted within 24 hours of being posted or removed from scheduled
+    messages without being posted, or “payment_refunded” if the payer
+    refunded their payment. """
+
+    suggested_post_message: Optional['Message'] = None
+    """ Optional. Message containing the suggested post. Note that the Message
+    object in this field will not contain the reply_to_message field even
+    if it itself is a reply. """
+
+
 class GiveawayCreated(BaseModel):
     """
     This object represents a service message about the creation of a
@@ -2102,6 +2429,75 @@ class LinkPreviewOptions(BaseModel):
     show_above_text: Optional[bool] = None
     """ Optional. True, if the link preview must be shown above the message
     text; otherwise, the link preview will be shown below the message text """
+
+
+class SuggestedPostPrice(BaseModel):
+    """
+    Describes the price of a suggested post.
+    """
+
+    currency: str
+    """ Currency in which the post will be paid. Currently, must be one of
+    “XTR” for Telegram Stars or “TON” for toncoins """
+
+    amount: int
+    """ The amount of the currency that will be paid for the post in the
+    smallest units of the currency, i.e. Telegram Stars or nanotoncoins.
+    Currently, price in Telegram Stars must be between 5 and 100000, and
+    price in nanotoncoins must be between 10000000 and 10000000000000. """
+
+
+class SuggestedPostInfo(BaseModel):
+    """
+    Contains information about a suggested post.
+    """
+
+    state: str
+    """ State of the suggested post. Currently, it can be one of “pending”,
+    “approved”, “declined”. """
+
+    price: Optional['SuggestedPostPrice'] = None
+    """ Optional. Proposed price of the post. If the field is omitted, then
+    the post is unpaid. """
+
+    send_date: Optional[int] = None
+    """ Optional. Proposed send date of the post. If the field is omitted,
+    then the post can be published at any time within 30 days at the sole
+    discretion of the user or administrator who approves it. """
+
+
+class SuggestedPostParameters(BaseModel):
+    """
+    Contains parameters of a post that is being suggested by the bot.
+    """
+
+    price: Optional['SuggestedPostPrice'] = None
+    """ Optional. Proposed price for the post. If the field is omitted, then
+    the post is unpaid. """
+
+    send_date: Optional[int] = None
+    """ Optional. Proposed send date of the post. If specified, then the date
+    must be between 300 second and 2678400 seconds (30 days) in the
+    future. If the field is omitted, then the post can be published at any
+    time within 30 days at the sole discretion of the user who approves
+    it. """
+
+
+class DirectMessagesTopic(BaseModel):
+    """
+    Describes a topic of a direct messages chat.
+    """
+
+    topic_id: int
+    """ Unique identifier of the topic. This number may have more than 32
+    significant bits and some programming languages may have
+    difficulty/silent defects in interpreting it. But it has at most 52
+    significant bits, so a 64-bit integer or double-precision float type
+    are safe for storing this identifier. """
+
+    user: Optional['User'] = None
+    """ Optional. Information about the user that created the topic.
+    Currently, it is always present """
 
 
 class UserProfilePhotos(BaseModel):
@@ -2417,7 +2813,8 @@ class InlineKeyboardButton(BaseModel):
     one of their chats, open that chat and insert the bot's username and
     the specified inline query in the input field. May be empty, in which
     case just the bot's username will be inserted. Not supported for
-    messages sent on behalf of a Telegram Business account. """
+    messages sent in channel direct messages chats and on behalf of a
+    Telegram Business account. """
 
     switch_inline_query_current_chat: Optional[str] = None
     """ Optional. If set, pressing the button will insert the bot's username
@@ -2425,15 +2822,15 @@ class InlineKeyboardButton(BaseModel):
     be empty, in which case only the bot's username will be inserted.This
     offers a quick way for the user to open your bot in inline mode in the
     same chat - good for selecting something from multiple options. Not
-    supported in channels and for messages sent on behalf of a Telegram
-    Business account. """
+    supported in channels and for messages sent in channel direct messages
+    chats and on behalf of a Telegram Business account. """
 
     switch_inline_query_chosen_chat: Optional['SwitchInlineQueryChosenChat'] = None
     """ Optional. If set, pressing the button will prompt the user to select
     one of their chats of the specified type, open that chat and insert
     the bot's username and the specified inline query in the input field.
-    Not supported for messages sent on behalf of a Telegram Business
-    account. """
+    Not supported for messages sent in channel direct messages chats and
+    on behalf of a Telegram Business account. """
 
     copy_text: Optional['CopyTextButton'] = None
     """ Optional. Description of the button that copies the specified text to
@@ -2665,8 +3062,9 @@ class ChatAdministratorRights(BaseModel):
 
     can_manage_chat: bool
     """ True, if the administrator can access the chat event log, get boost
-    list, see hidden supergroup and channel members, report spam messages
-    and ignore slow mode. Implied by any other administrator privilege. """
+    list, see hidden supergroup and channel members, report spam messages,
+    ignore slow mode, and send messages to the chat without paying
+    Telegram Stars. Implied by any other administrator privilege. """
 
     can_delete_messages: bool
     """ True, if the administrator can delete messages of other users """
@@ -2704,7 +3102,8 @@ class ChatAdministratorRights(BaseModel):
 
     can_post_messages: Optional[bool] = None
     """ Optional. True, if the administrator can post messages in the channel,
-    or access channel statistics; for channels only """
+    approve suggested posts, or access channel statistics; for channels
+    only """
 
     can_edit_messages: Optional[bool] = None
     """ Optional. True, if the administrator can edit messages of other users
@@ -2717,6 +3116,10 @@ class ChatAdministratorRights(BaseModel):
     can_manage_topics: Optional[bool] = None
     """ Optional. True, if the user is allowed to create, rename, close, and
     reopen forum topics; for supergroups only """
+
+    can_manage_direct_messages: Optional[bool] = None
+    """ Optional. True, if the administrator can manage direct messages of the
+    channel and decline suggested posts; for channels only """
 
 
 class ChatMemberUpdated(BaseModel):
@@ -2792,8 +3195,9 @@ class ChatMemberAdministrator(BaseModel):
 
     can_manage_chat: bool
     """ True, if the administrator can access the chat event log, get boost
-    list, see hidden supergroup and channel members, report spam messages
-    and ignore slow mode. Implied by any other administrator privilege. """
+    list, see hidden supergroup and channel members, report spam messages,
+    ignore slow mode, and send messages to the chat without paying
+    Telegram Stars. Implied by any other administrator privilege. """
 
     can_delete_messages: bool
     """ True, if the administrator can delete messages of other users """
@@ -2831,7 +3235,8 @@ class ChatMemberAdministrator(BaseModel):
 
     can_post_messages: Optional[bool] = None
     """ Optional. True, if the administrator can post messages in the channel,
-    or access channel statistics; for channels only """
+    approve suggested posts, or access channel statistics; for channels
+    only """
 
     can_edit_messages: Optional[bool] = None
     """ Optional. True, if the administrator can edit messages of other users
@@ -2844,6 +3249,10 @@ class ChatMemberAdministrator(BaseModel):
     can_manage_topics: Optional[bool] = None
     """ Optional. True, if the user is allowed to create, rename, close, and
     reopen forum topics; for supergroups only """
+
+    can_manage_direct_messages: Optional[bool] = None
+    """ Optional. True, if the administrator can manage direct messages of the
+    channel and decline suggested posts; for channels only """
 
     custom_title: Optional[str] = None
     """ Optional. Custom title for this user """
@@ -2903,7 +3312,7 @@ class ChatMemberRestricted(BaseModel):
     """ True, if the user is allowed to send voice notes """
 
     can_send_polls: bool
-    """ True, if the user is allowed to send polls """
+    """ True, if the user is allowed to send polls and checklists """
 
     can_send_other_messages: bool
     """ True, if the user is allowed to send animations, games, stickers and
@@ -3022,7 +3431,7 @@ class ChatPermissions(BaseModel):
     """ Optional. True, if the user is allowed to send voice notes """
 
     can_send_polls: Optional[bool] = None
-    """ Optional. True, if the user is allowed to send polls """
+    """ Optional. True, if the user is allowed to send polls and checklists """
 
     can_send_other_messages: Optional[bool] = None
     """ Optional. True, if the user is allowed to send animations, games,
@@ -3118,6 +3527,146 @@ class BusinessOpeningHours(BaseModel):
 
     opening_hours: List['BusinessOpeningHoursInterval']
     """ List of time intervals describing business opening hours """
+
+
+class StoryAreaPosition(BaseModel):
+    """
+    Describes the position of a clickable area within a story.
+    """
+
+    x_percentage: float
+    """ The abscissa of the area's center, as a percentage of the media width """
+
+    y_percentage: float
+    """ The ordinate of the area's center, as a percentage of the media height """
+
+    width_percentage: float
+    """ The width of the area's rectangle, as a percentage of the media width """
+
+    height_percentage: float
+    """ The height of the area's rectangle, as a percentage of the media
+    height """
+
+    rotation_angle: float
+    """ The clockwise rotation angle of the rectangle, in degrees; 0-360 """
+
+    corner_radius_percentage: float
+    """ The radius of the rectangle corner rounding, as a percentage of the
+    media width """
+
+
+class LocationAddress(BaseModel):
+    """
+    Describes the physical address of a location.
+    """
+
+    country_code: str
+    """ The two-letter ISO 3166-1 alpha-2 country code of the country where
+    the location is located """
+
+    state: Optional[str] = None
+    """ Optional. State of the location """
+
+    city: Optional[str] = None
+    """ Optional. City of the location """
+
+    street: Optional[str] = None
+    """ Optional. Street address of the location """
+
+
+class StoryAreaTypeLocation(BaseModel):
+    """
+    Describes a story area pointing to a location. Currently, a story can
+    have up to 10 location areas.
+    """
+
+    type: str
+    """ Type of the area, always “location” """
+
+    latitude: float
+    """ Location latitude in degrees """
+
+    longitude: float
+    """ Location longitude in degrees """
+
+    address: Optional['LocationAddress'] = None
+    """ Optional. Address of the location """
+
+
+class StoryAreaTypeSuggestedReaction(BaseModel):
+    """
+    Describes a story area pointing to a suggested reaction. Currently, a
+    story can have up to 5 suggested reaction areas.
+    """
+
+    type: str
+    """ Type of the area, always “suggested_reaction” """
+
+    reaction_type: 'ReactionType'
+    """ Type of the reaction """
+
+    is_dark: Optional[bool] = None
+    """ Optional. Pass True if the reaction area has a dark background """
+
+    is_flipped: Optional[bool] = None
+    """ Optional. Pass True if reaction area corner is flipped """
+
+
+class StoryAreaTypeLink(BaseModel):
+    """
+    Describes a story area pointing to an HTTP or tg:// link. Currently, a
+    story can have up to 3 link areas.
+    """
+
+    type: str
+    """ Type of the area, always “link” """
+
+    url: str
+    """ HTTP or tg:// URL to be opened when the area is clicked """
+
+
+class StoryAreaTypeWeather(BaseModel):
+    """
+    Describes a story area containing weather information. Currently, a
+    story can have up to 3 weather areas.
+    """
+
+    type: str
+    """ Type of the area, always “weather” """
+
+    temperature: float
+    """ Temperature, in degree Celsius """
+
+    emoji: str
+    """ Emoji representing the weather """
+
+    background_color: int
+    """ A color of the area background in the ARGB format """
+
+
+class StoryAreaTypeUniqueGift(BaseModel):
+    """
+    Describes a story area pointing to a unique gift. Currently, a story
+    can have at most 1 unique gift area.
+    """
+
+    type: str
+    """ Type of the area, always “unique_gift” """
+
+    name: str
+    """ Unique name of the gift """
+
+
+class StoryArea(BaseModel):
+    """
+    Describes a clickable area on a story media.
+    """
+
+    position: 'StoryAreaPosition'
+    """ Position of the area """
+
+    type: 'StoryAreaType'
+    """ Type of the area """
 
 
 class ChatLocation(BaseModel):
@@ -3254,6 +3803,352 @@ class ForumTopic(BaseModel):
     icon """
 
 
+class Gift(BaseModel):
+    """
+    This object represents a gift that can be sent by the bot.
+    """
+
+    id: str
+    """ Unique identifier of the gift """
+
+    sticker: 'Sticker'
+    """ The sticker that represents the gift """
+
+    star_count: int
+    """ The number of Telegram Stars that must be paid to send the sticker """
+
+    upgrade_star_count: Optional[int] = None
+    """ Optional. The number of Telegram Stars that must be paid to upgrade
+    the gift to a unique one """
+
+    total_count: Optional[int] = None
+    """ Optional. The total number of the gifts of this type that can be sent;
+    for limited gifts only """
+
+    remaining_count: Optional[int] = None
+    """ Optional. The number of remaining gifts of this type that can be sent;
+    for limited gifts only """
+
+    publisher_chat: Optional['Chat'] = None
+    """ Optional. Information about the chat that published the gift """
+
+
+class Gifts(BaseModel):
+    """
+    This object represent a list of gifts.
+    """
+
+    gifts: List['Gift']
+    """ The list of gifts """
+
+
+class UniqueGiftModel(BaseModel):
+    """
+    This object describes the model of a unique gift.
+    """
+
+    name: str
+    """ Name of the model """
+
+    sticker: 'Sticker'
+    """ The sticker that represents the unique gift """
+
+    rarity_per_mille: int
+    """ The number of unique gifts that receive this model for every 1000
+    gifts upgraded """
+
+
+class UniqueGiftSymbol(BaseModel):
+    """
+    This object describes the symbol shown on the pattern of a unique
+    gift.
+    """
+
+    name: str
+    """ Name of the symbol """
+
+    sticker: 'Sticker'
+    """ The sticker that represents the unique gift """
+
+    rarity_per_mille: int
+    """ The number of unique gifts that receive this model for every 1000
+    gifts upgraded """
+
+
+class UniqueGiftBackdropColors(BaseModel):
+    """
+    This object describes the colors of the backdrop of a unique gift.
+    """
+
+    center_color: int
+    """ The color in the center of the backdrop in RGB format """
+
+    edge_color: int
+    """ The color on the edges of the backdrop in RGB format """
+
+    symbol_color: int
+    """ The color to be applied to the symbol in RGB format """
+
+    text_color: int
+    """ The color for the text on the backdrop in RGB format """
+
+
+class UniqueGiftBackdrop(BaseModel):
+    """
+    This object describes the backdrop of a unique gift.
+    """
+
+    name: str
+    """ Name of the backdrop """
+
+    colors: 'UniqueGiftBackdropColors'
+    """ Colors of the backdrop """
+
+    rarity_per_mille: int
+    """ The number of unique gifts that receive this backdrop for every 1000
+    gifts upgraded """
+
+
+class UniqueGift(BaseModel):
+    """
+    This object describes a unique gift that was upgraded from a regular
+    gift.
+    """
+
+    base_name: str
+    """ Human-readable name of the regular gift from which this unique gift
+    was upgraded """
+
+    name: str
+    """ Unique name of the gift. This name can be used in https://t.me/nft/...
+    links and story areas """
+
+    number: int
+    """ Unique number of the upgraded gift among gifts upgraded from the same
+    regular gift """
+
+    model: 'UniqueGiftModel'
+    """ Model of the gift """
+
+    symbol: 'UniqueGiftSymbol'
+    """ Symbol of the gift """
+
+    backdrop: 'UniqueGiftBackdrop'
+    """ Backdrop of the gift """
+
+    publisher_chat: Optional['Chat'] = None
+    """ Optional. Information about the chat that published the gift """
+
+
+class GiftInfo(BaseModel):
+    """
+    Describes a service message about a regular gift that was sent or
+    received.
+    """
+
+    gift: 'Gift'
+    """ Information about the gift """
+
+    owned_gift_id: Optional[str] = None
+    """ Optional. Unique identifier of the received gift for the bot; only
+    present for gifts received on behalf of business accounts """
+
+    convert_star_count: Optional[int] = None
+    """ Optional. Number of Telegram Stars that can be claimed by the receiver
+    by converting the gift; omitted if conversion to Telegram Stars is
+    impossible """
+
+    prepaid_upgrade_star_count: Optional[int] = None
+    """ Optional. Number of Telegram Stars that were prepaid by the sender for
+    the ability to upgrade the gift """
+
+    can_be_upgraded: Optional[bool] = None
+    """ Optional. True, if the gift can be upgraded to a unique gift """
+
+    text: Optional[str] = None
+    """ Optional. Text of the message that was added to the gift """
+
+    entities: Optional[List['MessageEntity']] = None
+    """ Optional. Special entities that appear in the text """
+
+    is_private: Optional[bool] = None
+    """ Optional. True, if the sender and gift text are shown only to the gift
+    receiver; otherwise, everyone will be able to see them """
+
+
+class UniqueGiftInfo(BaseModel):
+    """
+    Describes a service message about a unique gift that was sent or
+    received.
+    """
+
+    gift: 'UniqueGift'
+    """ Information about the gift """
+
+    origin: str
+    """ Origin of the gift. Currently, either “upgrade” for gifts upgraded
+    from regular gifts, “transfer” for gifts transferred from other users
+    or channels, or “resale” for gifts bought from other users """
+
+    last_resale_star_count: Optional[int] = None
+    """ Optional. For gifts bought from other users, the price paid for the
+    gift """
+
+    owned_gift_id: Optional[str] = None
+    """ Optional. Unique identifier of the received gift for the bot; only
+    present for gifts received on behalf of business accounts """
+
+    transfer_star_count: Optional[int] = None
+    """ Optional. Number of Telegram Stars that must be paid to transfer the
+    gift; omitted if the bot cannot transfer the gift """
+
+    next_transfer_date: Optional[int] = None
+    """ Optional. Point in time (Unix timestamp) when the gift can be
+    transferred. If it is in the past, then the gift can be transferred
+    now """
+
+
+class OwnedGiftRegular(BaseModel):
+    """
+    Describes a regular gift owned by a user or a chat.
+    """
+
+    type: str
+    """ Type of the gift, always “regular” """
+
+    gift: 'Gift'
+    """ Information about the regular gift """
+
+    send_date: int
+    """ Date the gift was sent in Unix time """
+
+    owned_gift_id: Optional[str] = None
+    """ Optional. Unique identifier of the gift for the bot; for gifts
+    received on behalf of business accounts only """
+
+    sender_user: Optional['User'] = None
+    """ Optional. Sender of the gift if it is a known user """
+
+    text: Optional[str] = None
+    """ Optional. Text of the message that was added to the gift """
+
+    entities: Optional[List['MessageEntity']] = None
+    """ Optional. Special entities that appear in the text """
+
+    is_private: Optional[bool] = None
+    """ Optional. True, if the sender and gift text are shown only to the gift
+    receiver; otherwise, everyone will be able to see them """
+
+    is_saved: Optional[bool] = None
+    """ Optional. True, if the gift is displayed on the account's profile
+    page; for gifts received on behalf of business accounts only """
+
+    can_be_upgraded: Optional[bool] = None
+    """ Optional. True, if the gift can be upgraded to a unique gift; for
+    gifts received on behalf of business accounts only """
+
+    was_refunded: Optional[bool] = None
+    """ Optional. True, if the gift was refunded and isn't available anymore """
+
+    convert_star_count: Optional[int] = None
+    """ Optional. Number of Telegram Stars that can be claimed by the receiver
+    instead of the gift; omitted if the gift cannot be converted to
+    Telegram Stars """
+
+    prepaid_upgrade_star_count: Optional[int] = None
+    """ Optional. Number of Telegram Stars that were paid by the sender for
+    the ability to upgrade the gift """
+
+
+class OwnedGiftUnique(BaseModel):
+    """
+    Describes a unique gift received and owned by a user or a chat.
+    """
+
+    type: str
+    """ Type of the gift, always “unique” """
+
+    gift: 'UniqueGift'
+    """ Information about the unique gift """
+
+    send_date: int
+    """ Date the gift was sent in Unix time """
+
+    owned_gift_id: Optional[str] = None
+    """ Optional. Unique identifier of the received gift for the bot; for
+    gifts received on behalf of business accounts only """
+
+    sender_user: Optional['User'] = None
+    """ Optional. Sender of the gift if it is a known user """
+
+    is_saved: Optional[bool] = None
+    """ Optional. True, if the gift is displayed on the account's profile
+    page; for gifts received on behalf of business accounts only """
+
+    can_be_transferred: Optional[bool] = None
+    """ Optional. True, if the gift can be transferred to another owner; for
+    gifts received on behalf of business accounts only """
+
+    transfer_star_count: Optional[int] = None
+    """ Optional. Number of Telegram Stars that must be paid to transfer the
+    gift; omitted if the bot cannot transfer the gift """
+
+    next_transfer_date: Optional[int] = None
+    """ Optional. Point in time (Unix timestamp) when the gift can be
+    transferred. If it is in the past, then the gift can be transferred
+    now """
+
+
+class OwnedGifts(BaseModel):
+    """
+    Contains the list of gifts received and owned by a user or a chat.
+    """
+
+    total_count: int
+    """ The total number of gifts owned by the user or the chat """
+
+    gifts: List['OwnedGift']
+    """ The list of gifts """
+
+    next_offset: Optional[str] = None
+    """ Optional. Offset for the next request. If empty, then there are no
+    more results """
+
+
+class AcceptedGiftTypes(BaseModel):
+    """
+    This object describes the types of gifts that can be gifted to a user
+    or a chat.
+    """
+
+    unlimited_gifts: bool
+    """ True, if unlimited regular gifts are accepted """
+
+    limited_gifts: bool
+    """ True, if limited regular gifts are accepted """
+
+    unique_gifts: bool
+    """ True, if unique gifts or gifts that can be upgraded to unique for free
+    are accepted """
+
+    premium_subscription: bool
+    """ True, if a Telegram Premium subscription is accepted """
+
+
+class StarAmount(BaseModel):
+    """
+    Describes an amount of Telegram Stars.
+    """
+
+    amount: int
+    """ Integer amount of Telegram Stars, rounded to 0; can be negative """
+
+    nanostar_amount: Optional[int] = None
+    """ Optional. The number of 1/1000000000 shares of Telegram Stars; from
+    -999999999 to 999999999; can be negative if and only if amount is non-
+    positive """
+
+
 class BotCommand(BaseModel):
     """
     This object represents a bot command.
@@ -3316,7 +4211,8 @@ class BotCommandScopeChat(BaseModel):
 
     chat_id: Union[int, str]
     """ Unique identifier for the target chat or username of the target
-    supergroup (in the format @supergroupusername) """
+    supergroup (in the format @supergroupusername). Channel direct
+    messages chats and channel chats aren't supported. """
 
 
 class BotCommandScopeChatAdministrators(BaseModel):
@@ -3330,7 +4226,8 @@ class BotCommandScopeChatAdministrators(BaseModel):
 
     chat_id: Union[int, str]
     """ Unique identifier for the target chat or username of the target
-    supergroup (in the format @supergroupusername) """
+    supergroup (in the format @supergroupusername). Channel direct
+    messages chats and channel chats aren't supported. """
 
 
 class BotCommandScopeChatMember(BaseModel):
@@ -3344,7 +4241,8 @@ class BotCommandScopeChatMember(BaseModel):
 
     chat_id: Union[int, str]
     """ Unique identifier for the target chat or username of the target
-    supergroup (in the format @supergroupusername) """
+    supergroup (in the format @supergroupusername). Channel direct
+    messages chats and channel chats aren't supported. """
 
     user_id: int
     """ Unique identifier of the target user """
@@ -3531,6 +4429,66 @@ class UserChatBoosts(BaseModel):
     """ The list of boosts added to the chat by the user """
 
 
+class BusinessBotRights(BaseModel):
+    """
+    Represents the rights of a business bot.
+    """
+
+    can_reply: Optional[bool] = None
+    """ Optional. True, if the bot can send and edit messages in the private
+    chats that had incoming messages in the last 24 hours """
+
+    can_read_messages: Optional[bool] = None
+    """ Optional. True, if the bot can mark incoming private messages as read """
+
+    can_delete_sent_messages: Optional[bool] = None
+    """ Optional. True, if the bot can delete messages sent by the bot """
+
+    can_delete_all_messages: Optional[bool] = None
+    """ Optional. True, if the bot can delete all private messages in managed
+    chats """
+
+    can_edit_name: Optional[bool] = None
+    """ Optional. True, if the bot can edit the first and last name of the
+    business account """
+
+    can_edit_bio: Optional[bool] = None
+    """ Optional. True, if the bot can edit the bio of the business account """
+
+    can_edit_profile_photo: Optional[bool] = None
+    """ Optional. True, if the bot can edit the profile photo of the business
+    account """
+
+    can_edit_username: Optional[bool] = None
+    """ Optional. True, if the bot can edit the username of the business
+    account """
+
+    can_change_gift_settings: Optional[bool] = None
+    """ Optional. True, if the bot can change the privacy settings pertaining
+    to gifts for the business account """
+
+    can_view_gifts_and_stars: Optional[bool] = None
+    """ Optional. True, if the bot can view gifts and the amount of Telegram
+    Stars owned by the business account """
+
+    can_convert_gifts_to_stars: Optional[bool] = None
+    """ Optional. True, if the bot can convert regular gifts owned by the
+    business account to Telegram Stars """
+
+    can_transfer_and_upgrade_gifts: Optional[bool] = None
+    """ Optional. True, if the bot can transfer and upgrade gifts owned by the
+    business account """
+
+    can_transfer_stars: Optional[bool] = None
+    """ Optional. True, if the bot can transfer Telegram Stars received by the
+    business account to its own account, or use them to upgrade and
+    transfer gifts """
+
+    can_manage_stories: Optional[bool] = None
+    """ Optional. True, if the bot can post, edit and delete stories on behalf
+    of the business account """
+
+
 class BusinessConnection(BaseModel):
     """
     Describes the connection of the bot with a business account.
@@ -3553,12 +4511,11 @@ class BusinessConnection(BaseModel):
     date: int
     """ Date the connection was established in Unix time """
 
-    can_reply: bool
-    """ True, if the bot can act on behalf of the business account in chats
-    that were active in the last 24 hours """
-
     is_enabled: bool
     """ True, if the connection is active """
+
+    rights: Optional['BusinessBotRights'] = None
+    """ Optional. Rights of the business bot """
 
 
 class BusinessMessagesDeleted(BaseModel):
@@ -3913,6 +4870,86 @@ class InputPaidMediaVideo(BaseModel):
     """ Optional. Pass True if the uploaded video is suitable for streaming """
 
 
+class InputProfilePhotoStatic(BaseModel):
+    """
+    A static profile photo in the .JPG format.
+    """
+
+    type: str
+    """ Type of the profile photo, must be static """
+
+    photo: str
+    """ The static profile photo. Profile photos can't be reused and can only
+    be uploaded as a new file, so you can pass
+    “attach://<file_attach_name>” if the photo was uploaded using
+    multipart/form-data under <file_attach_name>. More information on
+    Sending Files » """
+
+
+class InputProfilePhotoAnimated(BaseModel):
+    """
+    An animated profile photo in the MPEG4 format.
+    """
+
+    type: str
+    """ Type of the profile photo, must be animated """
+
+    animation: str
+    """ The animated profile photo. Profile photos can't be reused and can
+    only be uploaded as a new file, so you can pass
+    “attach://<file_attach_name>” if the photo was uploaded using
+    multipart/form-data under <file_attach_name>. More information on
+    Sending Files » """
+
+    main_frame_timestamp: Optional[float] = None
+    """ Optional. Timestamp in seconds of the frame that will be used as the
+    static profile photo. Defaults to 0.0. """
+
+
+class InputStoryContentPhoto(BaseModel):
+    """
+    Describes a photo to post as a story.
+    """
+
+    type: str
+    """ Type of the content, must be photo """
+
+    photo: str
+    """ The photo to post as a story. The photo must be of the size 1080x1920
+    and must not exceed 10 MB. The photo can't be reused and can only be
+    uploaded as a new file, so you can pass “attach://<file_attach_name>”
+    if the photo was uploaded using multipart/form-data under
+    <file_attach_name>. More information on Sending Files » """
+
+
+class InputStoryContentVideo(BaseModel):
+    """
+    Describes a video to post as a story.
+    """
+
+    type: str
+    """ Type of the content, must be video """
+
+    video: str
+    """ The video to post as a story. The video must be of the size 720x1280,
+    streamable, encoded with H.265 codec, with key frames added each
+    second in the MPEG4 format, and must not exceed 30 MB. The video can't
+    be reused and can only be uploaded as a new file, so you can pass
+    “attach://<file_attach_name>” if the video was uploaded using
+    multipart/form-data under <file_attach_name>. More information on
+    Sending Files » """
+
+    duration: Optional[float] = None
+    """ Optional. Precise duration of the video in seconds; 0-60 """
+
+    cover_frame_timestamp: Optional[float] = None
+    """ Optional. Timestamp in seconds of the frame that will be used as the
+    static cover for the story. Defaults to 0.0. """
+
+    is_animation: Optional[bool] = None
+    """ Optional. Pass True if the video has no sound """
+
+
 class Sticker(BaseModel):
     """
     This object represents a sticker.
@@ -4026,14 +5063,14 @@ class InputSticker(BaseModel):
     This object describes a sticker to be added to a sticker set.
     """
 
-    sticker: Union['InputFile', str]
+    sticker: str
     """ The added sticker. Pass a file_id as a String to send a file that
     already exists on the Telegram servers, pass an HTTP URL as a String
-    for Telegram to get a file from the Internet, upload a new one using
-    multipart/form-data, or pass “attach://<file_attach_name>” to upload a
-    new one using multipart/form-data under <file_attach_name> name.
-    Animated and video stickers can't be uploaded via HTTP URL. More
-    information on Sending Files » """
+    for Telegram to get a file from the Internet, or pass
+    “attach://<file_attach_name>” to upload a new file using
+    multipart/form-data under <file_attach_name> name. Animated and video
+    stickers can't be uploaded via HTTP URL. More information on Sending
+    Files » """
 
     format: str
     """ Format of the added sticker, must be one of “static” for a .WEBP or
@@ -4050,42 +5087,6 @@ class InputSticker(BaseModel):
     """ Optional. List of 0-20 search keywords for the sticker with total
     length of up to 64 characters. For “regular” and “custom_emoji”
     stickers only. """
-
-
-class Gift(BaseModel):
-    """
-    This object represents a gift that can be sent by the bot.
-    """
-
-    id: str
-    """ Unique identifier of the gift """
-
-    sticker: 'Sticker'
-    """ The sticker that represents the gift """
-
-    star_count: int
-    """ The number of Telegram Stars that must be paid to send the sticker """
-
-    upgrade_star_count: Optional[int] = None
-    """ Optional. The number of Telegram Stars that must be paid to upgrade
-    the gift to a unique one """
-
-    total_count: Optional[int] = None
-    """ Optional. The total number of the gifts of this type that can be sent;
-    for limited gifts only """
-
-    remaining_count: Optional[int] = None
-    """ Optional. The number of remaining gifts of this type that can be sent;
-    for limited gifts only """
-
-
-class Gifts(BaseModel):
-    """
-    This object represent a list of gifts.
-    """
-
-    gifts: List['Gift']
-    """ The list of gifts """
 
 
 class InlineQuery(BaseModel):
@@ -5606,27 +6607,45 @@ class TransactionPartnerUser(BaseModel):
     type: str
     """ Type of the transaction partner, always “user” """
 
+    transaction_type: str
+    """ Type of the transaction, currently one of “invoice_payment” for
+    payments via invoices, “paid_media_payment” for payments for paid
+    media, “gift_purchase” for gifts sent by the bot, “premium_purchase”
+    for Telegram Premium subscriptions gifted by the bot,
+    “business_account_transfer” for direct transfers from managed business
+    accounts """
+
     user: 'User'
     """ Information about the user """
 
     affiliate: Optional['AffiliateInfo'] = None
     """ Optional. Information about the affiliate that received a commission
-    via this transaction """
+    via this transaction. Can be available only for “invoice_payment” and
+    “paid_media_payment” transactions. """
 
     invoice_payload: Optional[str] = None
-    """ Optional. Bot-specified invoice payload """
+    """ Optional. Bot-specified invoice payload. Can be available only for
+    “invoice_payment” transactions. """
 
     subscription_period: Optional[int] = None
-    """ Optional. The duration of the paid subscription """
+    """ Optional. The duration of the paid subscription. Can be available only
+    for “invoice_payment” transactions. """
 
     paid_media: Optional[List['PaidMedia']] = None
-    """ Optional. Information about the paid media bought by the user """
+    """ Optional. Information about the paid media bought by the user; for
+    “paid_media_payment” transactions only """
 
     paid_media_payload: Optional[str] = None
-    """ Optional. Bot-specified paid media payload """
+    """ Optional. Bot-specified paid media payload. Can be available only for
+    “paid_media_payment” transactions. """
 
     gift: Optional['Gift'] = None
-    """ Optional. The gift sent to the user by the bot """
+    """ Optional. The gift sent to the user by the bot; for “gift_purchase”
+    transactions only """
+
+    premium_subscription_duration: Optional[int] = None
+    """ Optional. Number of months the gifted Telegram Premium subscription
+    will be active for; for “premium_purchase” transactions only """
 
 
 class TransactionPartnerChat(BaseModel):
@@ -6183,6 +7202,18 @@ ChatMember = Union[
 ]
 
 """
+Describes the type of a clickable area on a story. Currently, it can
+be one of
+"""
+StoryAreaType = Union[
+    StoryAreaTypeLocation,
+    StoryAreaTypeSuggestedReaction,
+    StoryAreaTypeLink,
+    StoryAreaTypeWeather,
+    StoryAreaTypeUniqueGift,
+]
+
+"""
 This object describes the type of a reaction. Currently, it can be one
 of
 """
@@ -6190,6 +7221,15 @@ ReactionType = Union[
     ReactionTypeEmoji,
     ReactionTypeCustomEmoji,
     ReactionTypePaid,
+]
+
+"""
+This object describes a gift received and owned by a user or a chat.
+Currently, it can be one of
+"""
+OwnedGift = Union[
+    OwnedGiftRegular,
+    OwnedGiftUnique,
 ]
 
 """
@@ -6244,6 +7284,24 @@ one of
 InputPaidMedia = Union[
     InputPaidMediaPhoto,
     InputPaidMediaVideo,
+]
+
+"""
+This object describes a profile photo to set. Currently, it can be one
+of
+"""
+InputProfilePhoto = Union[
+    InputProfilePhotoStatic,
+    InputProfilePhotoAnimated,
+]
+
+"""
+This object describes the content of a story to post. Currently, it
+can be one of
+"""
+InputStoryContent = Union[
+    InputStoryContentPhoto,
+    InputStoryContentVideo,
 ]
 
 """
@@ -6330,433 +7388,524 @@ PassportElementError = Union[
 """InputFile should be file-like object, supported only in api calls, not models"""
 InputFile = Any
 
-Update.update_forward_refs()
+if pydantic_majv < 2:
+    def model_rebuild(_Model: type) -> None:
+        _Model.update_forward_refs()
+else:
+    def model_rebuild(_Model: type) -> None:
+        _Model.model_rebuild()
 
-WebhookInfo.update_forward_refs()
+model_rebuild(Update)
 
-User.update_forward_refs()
+model_rebuild(WebhookInfo)
 
-Chat.update_forward_refs()
+model_rebuild(User)
 
-ChatFullInfo.update_forward_refs()
+model_rebuild(Chat)
 
-Message.update_forward_refs()
+model_rebuild(ChatFullInfo)
 
-MessageId.update_forward_refs()
+model_rebuild(Message)
 
-InaccessibleMessage.update_forward_refs()
+model_rebuild(MessageId)
 
-MessageEntity.update_forward_refs()
+model_rebuild(InaccessibleMessage)
 
-TextQuote.update_forward_refs()
+model_rebuild(MessageEntity)
 
-ExternalReplyInfo.update_forward_refs()
+model_rebuild(TextQuote)
 
-ReplyParameters.update_forward_refs()
+model_rebuild(ExternalReplyInfo)
 
-MessageOriginUser.update_forward_refs()
+model_rebuild(ReplyParameters)
 
-MessageOriginHiddenUser.update_forward_refs()
+model_rebuild(MessageOriginUser)
 
-MessageOriginChat.update_forward_refs()
+model_rebuild(MessageOriginHiddenUser)
 
-MessageOriginChannel.update_forward_refs()
+model_rebuild(MessageOriginChat)
 
-PhotoSize.update_forward_refs()
+model_rebuild(MessageOriginChannel)
 
-Animation.update_forward_refs()
+model_rebuild(PhotoSize)
 
-Audio.update_forward_refs()
+model_rebuild(Animation)
 
-Document.update_forward_refs()
+model_rebuild(Audio)
 
-Story.update_forward_refs()
+model_rebuild(Document)
 
-Video.update_forward_refs()
+model_rebuild(Story)
 
-VideoNote.update_forward_refs()
+model_rebuild(Video)
 
-Voice.update_forward_refs()
+model_rebuild(VideoNote)
 
-PaidMediaInfo.update_forward_refs()
+model_rebuild(Voice)
 
-PaidMediaPreview.update_forward_refs()
+model_rebuild(PaidMediaInfo)
 
-PaidMediaPhoto.update_forward_refs()
+model_rebuild(PaidMediaPreview)
 
-PaidMediaVideo.update_forward_refs()
+model_rebuild(PaidMediaPhoto)
 
-Contact.update_forward_refs()
+model_rebuild(PaidMediaVideo)
 
-Dice.update_forward_refs()
+model_rebuild(Contact)
 
-PollOption.update_forward_refs()
+model_rebuild(Dice)
 
-InputPollOption.update_forward_refs()
+model_rebuild(PollOption)
 
-PollAnswer.update_forward_refs()
+model_rebuild(InputPollOption)
 
-Poll.update_forward_refs()
+model_rebuild(PollAnswer)
 
-Location.update_forward_refs()
+model_rebuild(Poll)
 
-Venue.update_forward_refs()
+model_rebuild(ChecklistTask)
 
-WebAppData.update_forward_refs()
+model_rebuild(Checklist)
 
-ProximityAlertTriggered.update_forward_refs()
+model_rebuild(InputChecklistTask)
 
-MessageAutoDeleteTimerChanged.update_forward_refs()
+model_rebuild(InputChecklist)
 
-ChatBoostAdded.update_forward_refs()
+model_rebuild(ChecklistTasksDone)
 
-BackgroundFillSolid.update_forward_refs()
+model_rebuild(ChecklistTasksAdded)
 
-BackgroundFillGradient.update_forward_refs()
+model_rebuild(Location)
 
-BackgroundFillFreeformGradient.update_forward_refs()
+model_rebuild(Venue)
 
-BackgroundTypeFill.update_forward_refs()
+model_rebuild(WebAppData)
 
-BackgroundTypeWallpaper.update_forward_refs()
+model_rebuild(ProximityAlertTriggered)
 
-BackgroundTypePattern.update_forward_refs()
+model_rebuild(MessageAutoDeleteTimerChanged)
 
-BackgroundTypeChatTheme.update_forward_refs()
+model_rebuild(ChatBoostAdded)
 
-ChatBackground.update_forward_refs()
+model_rebuild(BackgroundFillSolid)
 
-ForumTopicCreated.update_forward_refs()
+model_rebuild(BackgroundFillGradient)
 
-ForumTopicClosed.update_forward_refs()
+model_rebuild(BackgroundFillFreeformGradient)
 
-ForumTopicEdited.update_forward_refs()
+model_rebuild(BackgroundTypeFill)
 
-ForumTopicReopened.update_forward_refs()
+model_rebuild(BackgroundTypeWallpaper)
 
-GeneralForumTopicHidden.update_forward_refs()
+model_rebuild(BackgroundTypePattern)
 
-GeneralForumTopicUnhidden.update_forward_refs()
+model_rebuild(BackgroundTypeChatTheme)
 
-SharedUser.update_forward_refs()
+model_rebuild(ChatBackground)
 
-UsersShared.update_forward_refs()
+model_rebuild(ForumTopicCreated)
 
-ChatShared.update_forward_refs()
+model_rebuild(ForumTopicClosed)
 
-WriteAccessAllowed.update_forward_refs()
+model_rebuild(ForumTopicEdited)
 
-VideoChatScheduled.update_forward_refs()
+model_rebuild(ForumTopicReopened)
 
-VideoChatStarted.update_forward_refs()
+model_rebuild(GeneralForumTopicHidden)
 
-VideoChatEnded.update_forward_refs()
+model_rebuild(GeneralForumTopicUnhidden)
 
-VideoChatParticipantsInvited.update_forward_refs()
+model_rebuild(SharedUser)
 
-GiveawayCreated.update_forward_refs()
+model_rebuild(UsersShared)
 
-Giveaway.update_forward_refs()
+model_rebuild(ChatShared)
 
-GiveawayWinners.update_forward_refs()
+model_rebuild(WriteAccessAllowed)
 
-GiveawayCompleted.update_forward_refs()
+model_rebuild(VideoChatScheduled)
 
-LinkPreviewOptions.update_forward_refs()
+model_rebuild(VideoChatStarted)
 
-UserProfilePhotos.update_forward_refs()
+model_rebuild(VideoChatEnded)
 
-File.update_forward_refs()
+model_rebuild(VideoChatParticipantsInvited)
 
-WebAppInfo.update_forward_refs()
+model_rebuild(PaidMessagePriceChanged)
 
-ReplyKeyboardMarkup.update_forward_refs()
+model_rebuild(DirectMessagePriceChanged)
 
-KeyboardButton.update_forward_refs()
+model_rebuild(SuggestedPostApproved)
 
-KeyboardButtonRequestUsers.update_forward_refs()
+model_rebuild(SuggestedPostApprovalFailed)
 
-KeyboardButtonRequestChat.update_forward_refs()
+model_rebuild(SuggestedPostDeclined)
 
-KeyboardButtonPollType.update_forward_refs()
+model_rebuild(SuggestedPostPaid)
 
-ReplyKeyboardRemove.update_forward_refs()
+model_rebuild(SuggestedPostRefunded)
 
-InlineKeyboardMarkup.update_forward_refs()
+model_rebuild(GiveawayCreated)
 
-InlineKeyboardButton.update_forward_refs()
+model_rebuild(Giveaway)
 
-LoginUrl.update_forward_refs()
+model_rebuild(GiveawayWinners)
 
-SwitchInlineQueryChosenChat.update_forward_refs()
+model_rebuild(GiveawayCompleted)
 
-CopyTextButton.update_forward_refs()
+model_rebuild(LinkPreviewOptions)
 
-CallbackQuery.update_forward_refs()
+model_rebuild(SuggestedPostPrice)
 
-ForceReply.update_forward_refs()
+model_rebuild(SuggestedPostInfo)
 
-ChatPhoto.update_forward_refs()
+model_rebuild(SuggestedPostParameters)
 
-ChatInviteLink.update_forward_refs()
+model_rebuild(DirectMessagesTopic)
 
-ChatAdministratorRights.update_forward_refs()
+model_rebuild(UserProfilePhotos)
 
-ChatMemberUpdated.update_forward_refs()
+model_rebuild(File)
 
-ChatMemberOwner.update_forward_refs()
+model_rebuild(WebAppInfo)
 
-ChatMemberAdministrator.update_forward_refs()
+model_rebuild(ReplyKeyboardMarkup)
 
-ChatMemberMember.update_forward_refs()
+model_rebuild(KeyboardButton)
 
-ChatMemberRestricted.update_forward_refs()
+model_rebuild(KeyboardButtonRequestUsers)
 
-ChatMemberLeft.update_forward_refs()
+model_rebuild(KeyboardButtonRequestChat)
 
-ChatMemberBanned.update_forward_refs()
+model_rebuild(KeyboardButtonPollType)
 
-ChatJoinRequest.update_forward_refs()
+model_rebuild(ReplyKeyboardRemove)
 
-ChatPermissions.update_forward_refs()
+model_rebuild(InlineKeyboardMarkup)
 
-Birthdate.update_forward_refs()
+model_rebuild(InlineKeyboardButton)
 
-BusinessIntro.update_forward_refs()
+model_rebuild(LoginUrl)
 
-BusinessLocation.update_forward_refs()
+model_rebuild(SwitchInlineQueryChosenChat)
 
-BusinessOpeningHoursInterval.update_forward_refs()
+model_rebuild(CopyTextButton)
 
-BusinessOpeningHours.update_forward_refs()
+model_rebuild(CallbackQuery)
 
-ChatLocation.update_forward_refs()
+model_rebuild(ForceReply)
 
-ReactionTypeEmoji.update_forward_refs()
+model_rebuild(ChatPhoto)
 
-ReactionTypeCustomEmoji.update_forward_refs()
+model_rebuild(ChatInviteLink)
 
-ReactionTypePaid.update_forward_refs()
+model_rebuild(ChatAdministratorRights)
 
-ReactionCount.update_forward_refs()
+model_rebuild(ChatMemberUpdated)
 
-MessageReactionUpdated.update_forward_refs()
+model_rebuild(ChatMemberOwner)
 
-MessageReactionCountUpdated.update_forward_refs()
+model_rebuild(ChatMemberAdministrator)
 
-ForumTopic.update_forward_refs()
+model_rebuild(ChatMemberMember)
 
-BotCommand.update_forward_refs()
+model_rebuild(ChatMemberRestricted)
 
-BotCommandScopeDefault.update_forward_refs()
+model_rebuild(ChatMemberLeft)
 
-BotCommandScopeAllPrivateChats.update_forward_refs()
+model_rebuild(ChatMemberBanned)
 
-BotCommandScopeAllGroupChats.update_forward_refs()
+model_rebuild(ChatJoinRequest)
 
-BotCommandScopeAllChatAdministrators.update_forward_refs()
+model_rebuild(ChatPermissions)
 
-BotCommandScopeChat.update_forward_refs()
+model_rebuild(Birthdate)
 
-BotCommandScopeChatAdministrators.update_forward_refs()
+model_rebuild(BusinessIntro)
 
-BotCommandScopeChatMember.update_forward_refs()
+model_rebuild(BusinessLocation)
 
-BotName.update_forward_refs()
+model_rebuild(BusinessOpeningHoursInterval)
 
-BotDescription.update_forward_refs()
+model_rebuild(BusinessOpeningHours)
 
-BotShortDescription.update_forward_refs()
+model_rebuild(StoryAreaPosition)
 
-MenuButtonCommands.update_forward_refs()
+model_rebuild(LocationAddress)
 
-MenuButtonWebApp.update_forward_refs()
+model_rebuild(StoryAreaTypeLocation)
 
-MenuButtonDefault.update_forward_refs()
+model_rebuild(StoryAreaTypeSuggestedReaction)
 
-ChatBoostSourcePremium.update_forward_refs()
+model_rebuild(StoryAreaTypeLink)
 
-ChatBoostSourceGiftCode.update_forward_refs()
+model_rebuild(StoryAreaTypeWeather)
 
-ChatBoostSourceGiveaway.update_forward_refs()
+model_rebuild(StoryAreaTypeUniqueGift)
 
-ChatBoost.update_forward_refs()
+model_rebuild(StoryArea)
 
-ChatBoostUpdated.update_forward_refs()
+model_rebuild(ChatLocation)
 
-ChatBoostRemoved.update_forward_refs()
+model_rebuild(ReactionTypeEmoji)
 
-UserChatBoosts.update_forward_refs()
+model_rebuild(ReactionTypeCustomEmoji)
 
-BusinessConnection.update_forward_refs()
+model_rebuild(ReactionTypePaid)
 
-BusinessMessagesDeleted.update_forward_refs()
+model_rebuild(ReactionCount)
 
-ResponseParameters.update_forward_refs()
+model_rebuild(MessageReactionUpdated)
 
-InputMediaPhoto.update_forward_refs()
+model_rebuild(MessageReactionCountUpdated)
 
-InputMediaVideo.update_forward_refs()
+model_rebuild(ForumTopic)
 
-InputMediaAnimation.update_forward_refs()
+model_rebuild(Gift)
 
-InputMediaAudio.update_forward_refs()
+model_rebuild(Gifts)
 
-InputMediaDocument.update_forward_refs()
+model_rebuild(UniqueGiftModel)
 
-InputPaidMediaPhoto.update_forward_refs()
+model_rebuild(UniqueGiftSymbol)
 
-InputPaidMediaVideo.update_forward_refs()
+model_rebuild(UniqueGiftBackdropColors)
 
-Sticker.update_forward_refs()
+model_rebuild(UniqueGiftBackdrop)
 
-StickerSet.update_forward_refs()
+model_rebuild(UniqueGift)
 
-MaskPosition.update_forward_refs()
+model_rebuild(GiftInfo)
 
-InputSticker.update_forward_refs()
+model_rebuild(UniqueGiftInfo)
 
-Gift.update_forward_refs()
+model_rebuild(OwnedGiftRegular)
 
-Gifts.update_forward_refs()
+model_rebuild(OwnedGiftUnique)
 
-InlineQuery.update_forward_refs()
+model_rebuild(OwnedGifts)
 
-InlineQueryResultsButton.update_forward_refs()
+model_rebuild(AcceptedGiftTypes)
 
-InlineQueryResultArticle.update_forward_refs()
+model_rebuild(StarAmount)
 
-InlineQueryResultPhoto.update_forward_refs()
+model_rebuild(BotCommand)
 
-InlineQueryResultGif.update_forward_refs()
+model_rebuild(BotCommandScopeDefault)
 
-InlineQueryResultMpeg4Gif.update_forward_refs()
+model_rebuild(BotCommandScopeAllPrivateChats)
 
-InlineQueryResultVideo.update_forward_refs()
+model_rebuild(BotCommandScopeAllGroupChats)
 
-InlineQueryResultAudio.update_forward_refs()
+model_rebuild(BotCommandScopeAllChatAdministrators)
 
-InlineQueryResultVoice.update_forward_refs()
+model_rebuild(BotCommandScopeChat)
 
-InlineQueryResultDocument.update_forward_refs()
+model_rebuild(BotCommandScopeChatAdministrators)
 
-InlineQueryResultLocation.update_forward_refs()
+model_rebuild(BotCommandScopeChatMember)
 
-InlineQueryResultVenue.update_forward_refs()
+model_rebuild(BotName)
 
-InlineQueryResultContact.update_forward_refs()
+model_rebuild(BotDescription)
 
-InlineQueryResultGame.update_forward_refs()
+model_rebuild(BotShortDescription)
 
-InlineQueryResultCachedPhoto.update_forward_refs()
+model_rebuild(MenuButtonCommands)
 
-InlineQueryResultCachedGif.update_forward_refs()
+model_rebuild(MenuButtonWebApp)
 
-InlineQueryResultCachedMpeg4Gif.update_forward_refs()
+model_rebuild(MenuButtonDefault)
 
-InlineQueryResultCachedSticker.update_forward_refs()
+model_rebuild(ChatBoostSourcePremium)
 
-InlineQueryResultCachedDocument.update_forward_refs()
+model_rebuild(ChatBoostSourceGiftCode)
 
-InlineQueryResultCachedVideo.update_forward_refs()
+model_rebuild(ChatBoostSourceGiveaway)
 
-InlineQueryResultCachedVoice.update_forward_refs()
+model_rebuild(ChatBoost)
 
-InlineQueryResultCachedAudio.update_forward_refs()
+model_rebuild(ChatBoostUpdated)
 
-InputTextMessageContent.update_forward_refs()
+model_rebuild(ChatBoostRemoved)
 
-InputLocationMessageContent.update_forward_refs()
+model_rebuild(UserChatBoosts)
 
-InputVenueMessageContent.update_forward_refs()
+model_rebuild(BusinessBotRights)
 
-InputContactMessageContent.update_forward_refs()
+model_rebuild(BusinessConnection)
 
-InputInvoiceMessageContent.update_forward_refs()
+model_rebuild(BusinessMessagesDeleted)
 
-ChosenInlineResult.update_forward_refs()
+model_rebuild(ResponseParameters)
 
-SentWebAppMessage.update_forward_refs()
+model_rebuild(InputMediaPhoto)
 
-PreparedInlineMessage.update_forward_refs()
+model_rebuild(InputMediaVideo)
 
-LabeledPrice.update_forward_refs()
+model_rebuild(InputMediaAnimation)
 
-Invoice.update_forward_refs()
+model_rebuild(InputMediaAudio)
 
-ShippingAddress.update_forward_refs()
+model_rebuild(InputMediaDocument)
 
-OrderInfo.update_forward_refs()
+model_rebuild(InputPaidMediaPhoto)
 
-ShippingOption.update_forward_refs()
+model_rebuild(InputPaidMediaVideo)
 
-SuccessfulPayment.update_forward_refs()
+model_rebuild(InputProfilePhotoStatic)
 
-RefundedPayment.update_forward_refs()
+model_rebuild(InputProfilePhotoAnimated)
 
-ShippingQuery.update_forward_refs()
+model_rebuild(InputStoryContentPhoto)
 
-PreCheckoutQuery.update_forward_refs()
+model_rebuild(InputStoryContentVideo)
 
-PaidMediaPurchased.update_forward_refs()
+model_rebuild(Sticker)
 
-RevenueWithdrawalStatePending.update_forward_refs()
+model_rebuild(StickerSet)
 
-RevenueWithdrawalStateSucceeded.update_forward_refs()
+model_rebuild(MaskPosition)
 
-RevenueWithdrawalStateFailed.update_forward_refs()
+model_rebuild(InputSticker)
 
-AffiliateInfo.update_forward_refs()
+model_rebuild(InlineQuery)
 
-TransactionPartnerUser.update_forward_refs()
+model_rebuild(InlineQueryResultsButton)
 
-TransactionPartnerChat.update_forward_refs()
+model_rebuild(InlineQueryResultArticle)
 
-TransactionPartnerAffiliateProgram.update_forward_refs()
+model_rebuild(InlineQueryResultPhoto)
 
-TransactionPartnerFragment.update_forward_refs()
+model_rebuild(InlineQueryResultGif)
 
-TransactionPartnerTelegramAds.update_forward_refs()
+model_rebuild(InlineQueryResultMpeg4Gif)
 
-TransactionPartnerTelegramApi.update_forward_refs()
+model_rebuild(InlineQueryResultVideo)
 
-TransactionPartnerOther.update_forward_refs()
+model_rebuild(InlineQueryResultAudio)
 
-StarTransaction.update_forward_refs()
+model_rebuild(InlineQueryResultVoice)
 
-StarTransactions.update_forward_refs()
+model_rebuild(InlineQueryResultDocument)
 
-PassportData.update_forward_refs()
+model_rebuild(InlineQueryResultLocation)
 
-PassportFile.update_forward_refs()
+model_rebuild(InlineQueryResultVenue)
 
-EncryptedPassportElement.update_forward_refs()
+model_rebuild(InlineQueryResultContact)
 
-EncryptedCredentials.update_forward_refs()
+model_rebuild(InlineQueryResultGame)
 
-PassportElementErrorDataField.update_forward_refs()
+model_rebuild(InlineQueryResultCachedPhoto)
 
-PassportElementErrorFrontSide.update_forward_refs()
+model_rebuild(InlineQueryResultCachedGif)
 
-PassportElementErrorReverseSide.update_forward_refs()
+model_rebuild(InlineQueryResultCachedMpeg4Gif)
 
-PassportElementErrorSelfie.update_forward_refs()
+model_rebuild(InlineQueryResultCachedSticker)
 
-PassportElementErrorFile.update_forward_refs()
+model_rebuild(InlineQueryResultCachedDocument)
 
-PassportElementErrorFiles.update_forward_refs()
+model_rebuild(InlineQueryResultCachedVideo)
 
-PassportElementErrorTranslationFile.update_forward_refs()
+model_rebuild(InlineQueryResultCachedVoice)
 
-PassportElementErrorTranslationFiles.update_forward_refs()
+model_rebuild(InlineQueryResultCachedAudio)
 
-PassportElementErrorUnspecified.update_forward_refs()
+model_rebuild(InputTextMessageContent)
 
-Game.update_forward_refs()
+model_rebuild(InputLocationMessageContent)
 
-CallbackGame.update_forward_refs()
+model_rebuild(InputVenueMessageContent)
 
-GameHighScore.update_forward_refs()
+model_rebuild(InputContactMessageContent)
+
+model_rebuild(InputInvoiceMessageContent)
+
+model_rebuild(ChosenInlineResult)
+
+model_rebuild(SentWebAppMessage)
+
+model_rebuild(PreparedInlineMessage)
+
+model_rebuild(LabeledPrice)
+
+model_rebuild(Invoice)
+
+model_rebuild(ShippingAddress)
+
+model_rebuild(OrderInfo)
+
+model_rebuild(ShippingOption)
+
+model_rebuild(SuccessfulPayment)
+
+model_rebuild(RefundedPayment)
+
+model_rebuild(ShippingQuery)
+
+model_rebuild(PreCheckoutQuery)
+
+model_rebuild(PaidMediaPurchased)
+
+model_rebuild(RevenueWithdrawalStatePending)
+
+model_rebuild(RevenueWithdrawalStateSucceeded)
+
+model_rebuild(RevenueWithdrawalStateFailed)
+
+model_rebuild(AffiliateInfo)
+
+model_rebuild(TransactionPartnerUser)
+
+model_rebuild(TransactionPartnerChat)
+
+model_rebuild(TransactionPartnerAffiliateProgram)
+
+model_rebuild(TransactionPartnerFragment)
+
+model_rebuild(TransactionPartnerTelegramAds)
+
+model_rebuild(TransactionPartnerTelegramApi)
+
+model_rebuild(TransactionPartnerOther)
+
+model_rebuild(StarTransaction)
+
+model_rebuild(StarTransactions)
+
+model_rebuild(PassportData)
+
+model_rebuild(PassportFile)
+
+model_rebuild(EncryptedPassportElement)
+
+model_rebuild(EncryptedCredentials)
+
+model_rebuild(PassportElementErrorDataField)
+
+model_rebuild(PassportElementErrorFrontSide)
+
+model_rebuild(PassportElementErrorReverseSide)
+
+model_rebuild(PassportElementErrorSelfie)
+
+model_rebuild(PassportElementErrorFile)
+
+model_rebuild(PassportElementErrorFiles)
+
+model_rebuild(PassportElementErrorTranslationFile)
+
+model_rebuild(PassportElementErrorTranslationFiles)
+
+model_rebuild(PassportElementErrorUnspecified)
+
+model_rebuild(Game)
+
+model_rebuild(CallbackGame)
+
+model_rebuild(GameHighScore)
 
 
 class Teleapi(Protocol):
@@ -6915,6 +8064,7 @@ class Teleapi(Protocol):
             text: str,
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             parse_mode: Optional[str] = None,
             entities: Optional[List['MessageEntity']] = None,
             link_preview_options: Optional['LinkPreviewOptions'] = None,
@@ -6922,6 +8072,7 @@ class Teleapi(Protocol):
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -6937,6 +8088,8 @@ class Teleapi(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param parse_mode: Mode for parsing entities in the message text. See formatting options
             for more details.
         :param entities: A JSON-serialized list of special entities that appear in message
@@ -6950,6 +8103,10 @@ class Teleapi(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -6964,9 +8121,11 @@ class Teleapi(Protocol):
             from_chat_id: Union[int, str],
             message_id: int,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             video_start_timestamp: Optional[int] = None,
             disable_notification: Optional[bool] = None,
             protect_content: Optional[bool] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
     ) -> 'Message':
         """
         Use this method to forward messages of any kind. Service messages and
@@ -6980,11 +8139,16 @@ class Teleapi(Protocol):
         :param message_id: Message identifier in the chat specified in from_chat_id
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            forwarded; required if the message is forwarded to a direct messages
+            chat
         :param video_start_timestamp: New start timestamp for the forwarded video in the message
         :param disable_notification: Sends the message silently. Users will receive a notification with no
             sound.
         :param protect_content: Protects the contents of the forwarded message from forwarding and
             saving
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only
         """
         pass
 
@@ -6995,6 +8159,7 @@ class Teleapi(Protocol):
             from_chat_id: Union[int, str],
             message_ids: List[int],
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             disable_notification: Optional[bool] = None,
             protect_content: Optional[bool] = None,
     ) -> List['MessageId']:
@@ -7014,6 +8179,9 @@ class Teleapi(Protocol):
             strictly increasing order.
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the messages will be
+            forwarded; required if the messages are forwarded to a direct messages
+            chat
         :param disable_notification: Sends the messages silently. Users will receive a notification with no
             sound.
         :param protect_content: Protects the contents of the forwarded messages from forwarding and
@@ -7028,6 +8196,7 @@ class Teleapi(Protocol):
             from_chat_id: Union[int, str],
             message_id: int,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             video_start_timestamp: Optional[int] = None,
             caption: Optional[str] = None,
             parse_mode: Optional[str] = None,
@@ -7036,6 +8205,7 @@ class Teleapi(Protocol):
             disable_notification: Optional[bool] = None,
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'MessageId':
@@ -7055,6 +8225,8 @@ class Teleapi(Protocol):
         :param message_id: Message identifier in the chat specified in from_chat_id
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param video_start_timestamp: New start timestamp for the copied video in the message
         :param caption: New caption for media, 0-1024 characters after entities parsing. If
             not specified, the original caption is kept
@@ -7070,6 +8242,10 @@ class Teleapi(Protocol):
         :param allow_paid_broadcast: Pass True to allow up to 1000 messages per second, ignoring
             broadcasting limits for a fee of 0.1 Telegram Stars per message. The
             relevant Stars will be withdrawn from the bot's balance
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -7084,6 +8260,7 @@ class Teleapi(Protocol):
             from_chat_id: Union[int, str],
             message_ids: List[int],
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             disable_notification: Optional[bool] = None,
             protect_content: Optional[bool] = None,
             remove_caption: Optional[bool] = None,
@@ -7108,6 +8285,8 @@ class Teleapi(Protocol):
             increasing order.
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the messages will be
+            sent; required if the messages are sent to a direct messages chat
         :param disable_notification: Sends the messages silently. Users will receive a notification with no
             sound.
         :param protect_content: Protects the contents of the sent messages from forwarding and saving
@@ -7122,6 +8301,7 @@ class Teleapi(Protocol):
             photo: Union['InputFile', str],
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             caption: Optional[str] = None,
             parse_mode: Optional[str] = None,
             caption_entities: Optional[List['MessageEntity']] = None,
@@ -7131,6 +8311,7 @@ class Teleapi(Protocol):
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -7150,6 +8331,8 @@ class Teleapi(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param caption: Photo caption (may also be used when resending photos by file_id),
             0-1024 characters after entities parsing
         :param parse_mode: Mode for parsing entities in the photo caption. See formatting options
@@ -7166,6 +8349,10 @@ class Teleapi(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -7180,6 +8367,7 @@ class Teleapi(Protocol):
             audio: Union['InputFile', str],
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             caption: Optional[str] = None,
             parse_mode: Optional[str] = None,
             caption_entities: Optional[List['MessageEntity']] = None,
@@ -7191,6 +8379,7 @@ class Teleapi(Protocol):
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -7214,6 +8403,8 @@ class Teleapi(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param caption: Audio caption, 0-1024 characters after entities parsing
         :param parse_mode: Mode for parsing entities in the audio caption. See formatting options
             for more details.
@@ -7238,6 +8429,10 @@ class Teleapi(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -7252,6 +8447,7 @@ class Teleapi(Protocol):
             document: Union['InputFile', str],
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             thumbnail: Optional[Union['InputFile', str]] = None,
             caption: Optional[str] = None,
             parse_mode: Optional[str] = None,
@@ -7261,6 +8457,7 @@ class Teleapi(Protocol):
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -7279,6 +8476,8 @@ class Teleapi(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param thumbnail: Thumbnail of the file sent; can be ignored if thumbnail generation for
             the file is supported server-side. The thumbnail should be in JPEG
             format and less than 200 kB in size. A thumbnail's width and height
@@ -7303,6 +8502,10 @@ class Teleapi(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -7317,6 +8520,7 @@ class Teleapi(Protocol):
             video: Union['InputFile', str],
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             duration: Optional[int] = None,
             width: Optional[int] = None,
             height: Optional[int] = None,
@@ -7333,6 +8537,7 @@ class Teleapi(Protocol):
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -7352,6 +8557,8 @@ class Teleapi(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param duration: Duration of sent video in seconds
         :param width: Video width
         :param height: Video height
@@ -7387,6 +8594,10 @@ class Teleapi(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -7401,6 +8612,7 @@ class Teleapi(Protocol):
             animation: Union['InputFile', str],
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             duration: Optional[int] = None,
             width: Optional[int] = None,
             height: Optional[int] = None,
@@ -7414,6 +8626,7 @@ class Teleapi(Protocol):
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -7434,6 +8647,8 @@ class Teleapi(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param duration: Duration of sent animation in seconds
         :param width: Animation width
         :param height: Animation height
@@ -7462,6 +8677,10 @@ class Teleapi(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -7476,6 +8695,7 @@ class Teleapi(Protocol):
             voice: Union['InputFile', str],
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             caption: Optional[str] = None,
             parse_mode: Optional[str] = None,
             caption_entities: Optional[List['MessageEntity']] = None,
@@ -7484,6 +8704,7 @@ class Teleapi(Protocol):
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -7506,6 +8727,8 @@ class Teleapi(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param caption: Voice message caption, 0-1024 characters after entities parsing
         :param parse_mode: Mode for parsing entities in the voice message caption. See formatting
             options for more details.
@@ -7520,6 +8743,10 @@ class Teleapi(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -7534,6 +8761,7 @@ class Teleapi(Protocol):
             video_note: Union['InputFile', str],
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             duration: Optional[int] = None,
             length: Optional[int] = None,
             thumbnail: Optional[Union['InputFile', str]] = None,
@@ -7541,6 +8769,7 @@ class Teleapi(Protocol):
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -7559,6 +8788,8 @@ class Teleapi(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param duration: Duration of sent video in seconds
         :param length: Video width and height, i.e. diameter of the video message
         :param thumbnail: Thumbnail of the file sent; can be ignored if thumbnail generation for
@@ -7577,6 +8808,10 @@ class Teleapi(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -7591,6 +8826,8 @@ class Teleapi(Protocol):
             star_count: int,
             media: List['InputPaidMedia'],
             business_connection_id: Optional[str] = None,
+            message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             payload: Optional[str] = None,
             caption: Optional[str] = None,
             parse_mode: Optional[str] = None,
@@ -7599,6 +8836,7 @@ class Teleapi(Protocol):
             disable_notification: Optional[bool] = None,
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -7611,11 +8849,15 @@ class Teleapi(Protocol):
             all Telegram Star proceeds from this media will be credited to the
             chat's balance. Otherwise, they will be credited to the bot's balance.
         :param star_count: The number of Telegram Stars that must be paid to buy access to the
-            media; 1-2500
+            media; 1-10000
         :param media: A JSON-serialized array describing the media to be sent; up to 10
             items
         :param business_connection_id: Unique identifier of the business connection on behalf of which the
             message will be sent
+        :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
+            for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param payload: Bot-defined paid media payload, 0-128 bytes. This will not be
             displayed to the user, use it for your internal processes.
         :param caption: Media caption, 0-1024 characters after entities parsing
@@ -7630,6 +8872,10 @@ class Teleapi(Protocol):
         :param allow_paid_broadcast: Pass True to allow up to 1000 messages per second, ignoring
             broadcasting limits for a fee of 0.1 Telegram Stars per message. The
             relevant Stars will be withdrawn from the bot's balance
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -7644,6 +8890,7 @@ class Teleapi(Protocol):
             media: List['InputMediaAudio, InputMediaDocument, InputMediaPhoto and InputMediaVideo'],
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             disable_notification: Optional[bool] = None,
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
@@ -7653,8 +8900,8 @@ class Teleapi(Protocol):
         """
         Use this method to send a group of photos, videos, documents or audios
         as an album. Documents and audio files can be only grouped in an album
-        with messages of the same type. On success, an array of Messages that
-        were sent is returned.
+        with messages of the same type. On success, an array of Message
+        objects that were sent is returned.
 
         :param chat_id: Unique identifier for the target chat or username of the target
             channel (in the format @channelusername)
@@ -7664,6 +8911,8 @@ class Teleapi(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the messages will be
+            sent; required if the messages are sent to a direct messages chat
         :param disable_notification: Sends messages silently. Users will receive a notification with no
             sound.
         :param protect_content: Protects the contents of the sent messages from forwarding and saving
@@ -7684,6 +8933,7 @@ class Teleapi(Protocol):
             longitude: float,
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             horizontal_accuracy: Optional[float] = None,
             live_period: Optional[int] = None,
             heading: Optional[int] = None,
@@ -7692,6 +8942,7 @@ class Teleapi(Protocol):
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -7707,6 +8958,8 @@ class Teleapi(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param horizontal_accuracy: The radius of uncertainty for the location, measured in meters; 0-1500
         :param live_period: Period in seconds during which the location will be updated (see Live
             Locations, should be between 60 and 86400, or 0x7FFFFFFF for live
@@ -7724,6 +8977,10 @@ class Teleapi(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -7741,6 +8998,7 @@ class Teleapi(Protocol):
             address: str,
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             foursquare_id: Optional[str] = None,
             foursquare_type: Optional[str] = None,
             google_place_id: Optional[str] = None,
@@ -7749,6 +9007,7 @@ class Teleapi(Protocol):
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -7766,6 +9025,8 @@ class Teleapi(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param foursquare_id: Foursquare identifier of the venue
         :param foursquare_type: Foursquare type of the venue, if known. (For example,
             “arts_entertainment/default”, “arts_entertainment/aquarium” or
@@ -7780,6 +9041,10 @@ class Teleapi(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -7795,12 +9060,14 @@ class Teleapi(Protocol):
             first_name: str,
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             last_name: Optional[str] = None,
             vcard: Optional[str] = None,
             disable_notification: Optional[bool] = None,
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -7816,6 +9083,8 @@ class Teleapi(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param last_name: Contact's last name
         :param vcard: Additional data about the contact in the form of a vCard, 0-2048 bytes
         :param disable_notification: Sends the message silently. Users will receive a notification with no
@@ -7826,6 +9095,10 @@ class Teleapi(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -7865,9 +9138,10 @@ class Teleapi(Protocol):
         returned.
 
         :param chat_id: Unique identifier for the target chat or username of the target
-            channel (in the format @channelusername)
+            channel (in the format @channelusername). Polls can't be sent to
+            channel direct messages chats.
         :param question: Poll question, 1-300 characters
-        :param options: A JSON-serialized list of 2-10 answer options
+        :param options: A JSON-serialized list of 2-12 answer options
         :param business_connection_id: Unique identifier of the business connection on behalf of which the
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
@@ -7911,17 +9185,48 @@ class Teleapi(Protocol):
         """
         pass
 
+    def sendChecklist(
+            self,
+            *,
+            business_connection_id: str,
+            chat_id: int,
+            checklist: 'InputChecklist',
+            disable_notification: Optional[bool] = None,
+            protect_content: Optional[bool] = None,
+            message_effect_id: Optional[str] = None,
+            reply_parameters: Optional['ReplyParameters'] = None,
+            reply_markup: Optional['InlineKeyboardMarkup'] = None,
+    ) -> 'Message':
+        """
+        Use this method to send a checklist on behalf of a connected business
+        account. On success, the sent Message is returned.
+
+        :param business_connection_id: Unique identifier of the business connection on behalf of which the
+            message will be sent
+        :param chat_id: Unique identifier for the target chat
+        :param checklist: A JSON-serialized object for the checklist to send
+        :param disable_notification: Sends the message silently. Users will receive a notification with no
+            sound.
+        :param protect_content: Protects the contents of the sent message from forwarding and saving
+        :param message_effect_id: Unique identifier of the message effect to be added to the message
+        :param reply_parameters: A JSON-serialized object for description of the message to reply to
+        :param reply_markup: A JSON-serialized object for an inline keyboard
+        """
+        pass
+
     def sendDice(
             self,
             *,
             chat_id: Union[int, str],
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             emoji: Optional[str] = None,
             disable_notification: Optional[bool] = None,
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -7935,6 +9240,8 @@ class Teleapi(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param emoji: Emoji on which the dice throw animation is based. Currently, must be
             one of “”, “”, “”, “”, “”, or “”. Dice can have values 1-6 for “”, “”
             and “”, values 1-5 for “” and “”, and values 1-64 for “”. Defaults to
@@ -7947,6 +9254,10 @@ class Teleapi(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -7969,7 +9280,8 @@ class Teleapi(Protocol):
         typing status). Returns True on success.
 
         :param chat_id: Unique identifier for the target chat or username of the target
-            channel (in the format @channelusername)
+            supergroup (in the format @supergroupusername). Channel chats and
+            channel direct messages chats aren't supported.
         :param action: Type of action to broadcast. Choose one, depending on what the user is
             about to receive: typing for text messages, upload_photo for photos,
             record_video or upload_video for videos, record_voice or upload_voice
@@ -8173,6 +9485,7 @@ class Teleapi(Protocol):
             can_edit_messages: Optional[bool] = None,
             can_pin_messages: Optional[bool] = None,
             can_manage_topics: Optional[bool] = None,
+            can_manage_direct_messages: Optional[bool] = None,
     ) -> bool:
         """
         Use this method to promote or demote a user in a supergroup or a
@@ -8186,8 +9499,8 @@ class Teleapi(Protocol):
         :param is_anonymous: Pass True if the administrator's presence in the chat is hidden
         :param can_manage_chat: Pass True if the administrator can access the chat event log, get
             boost list, see hidden supergroup and channel members, report spam
-            messages and ignore slow mode. Implied by any other administrator
-            privilege.
+            messages, ignore slow mode, and send messages to the chat without
+            paying Telegram Stars. Implied by any other administrator privilege.
         :param can_delete_messages: Pass True if the administrator can delete messages of other users
         :param can_manage_video_chats: Pass True if the administrator can manage video chats
         :param can_restrict_members: Pass True if the administrator can restrict, ban or unban chat
@@ -8205,13 +9518,16 @@ class Teleapi(Protocol):
             story archive
         :param can_delete_stories: Pass True if the administrator can delete stories posted by other
             users
-        :param can_post_messages: Pass True if the administrator can post messages in the channel, or
-            access channel statistics; for channels only
+        :param can_post_messages: Pass True if the administrator can post messages in the channel,
+            approve suggested posts, or access channel statistics; for channels
+            only
         :param can_edit_messages: Pass True if the administrator can edit messages of other users and
             can pin messages; for channels only
         :param can_pin_messages: Pass True if the administrator can pin messages; for supergroups only
         :param can_manage_topics: Pass True if the user is allowed to create, rename, close, and reopen
             forum topics; for supergroups only
+        :param can_manage_direct_messages: Pass True if the administrator can manage direct messages within the
+            channel and decline suggested posts; for channels only
         """
         pass
 
@@ -8389,7 +9705,7 @@ class Teleapi(Protocol):
         :param subscription_period: The number of seconds the subscription will be active for before the
             next payment. Currently, it must always be 2592000 (30 days).
         :param subscription_price: The amount of Telegram Stars a user must pay initially and after each
-            subsequent subscription period to be a member of the chat; 1-2500
+            subsequent subscription period to be a member of the chat; 1-10000
         :param name: Invite link name; 0-32 characters
         """
         pass
@@ -8546,11 +9862,11 @@ class Teleapi(Protocol):
     ) -> bool:
         """
         Use this method to add a message to the list of pinned messages in a
-        chat. If the chat is not a private chat, the bot must be an
-        administrator in the chat for this to work and must have the
-        'can_pin_messages' administrator right in a supergroup or
-        'can_edit_messages' administrator right in a channel. Returns True on
-        success.
+        chat. In private chats and channel direct messages chats, all non-
+        service messages can be pinned. Conversely, the bot must be an
+        administrator with the 'can_pin_messages' right or the
+        'can_edit_messages' right to pin messages in groups and channels
+        respectively. Returns True on success.
 
         :param chat_id: Unique identifier for the target chat or username of the target
             channel (in the format @channelusername)
@@ -8572,10 +9888,10 @@ class Teleapi(Protocol):
     ) -> bool:
         """
         Use this method to remove a message from the list of pinned messages
-        in a chat. If the chat is not a private chat, the bot must be an
-        administrator in the chat for this to work and must have the
-        'can_pin_messages' administrator right in a supergroup or
-        'can_edit_messages' administrator right in a channel. Returns True on
+        in a chat. In private chats and channel direct messages chats, all
+        messages can be unpinned. Conversely, the bot must be an administrator
+        with the 'can_pin_messages' right or the 'can_edit_messages' right to
+        unpin messages in groups and channels respectively. Returns True on
         success.
 
         :param chat_id: Unique identifier for the target chat or username of the target
@@ -8594,11 +9910,12 @@ class Teleapi(Protocol):
             chat_id: Union[int, str],
     ) -> bool:
         """
-        Use this method to clear the list of pinned messages in a chat. If the
-        chat is not a private chat, the bot must be an administrator in the
-        chat for this to work and must have the 'can_pin_messages'
-        administrator right in a supergroup or 'can_edit_messages'
-        administrator right in a channel. Returns True on success.
+        Use this method to clear the list of pinned messages in a chat. In
+        private chats and channel direct messages chats, no additional rights
+        are required to unpin all pinned messages. Conversely, the bot must be
+        an administrator with the 'can_pin_messages' right or the
+        'can_edit_messages' right to unpin all pinned messages in groups and
+        channels respectively. Returns True on success.
 
         :param chat_id: Unique identifier for the target chat or username of the target
             channel (in the format @channelusername)
@@ -8615,7 +9932,9 @@ class Teleapi(Protocol):
         Returns True on success.
 
         :param chat_id: Unique identifier for the target chat or username of the target
-            supergroup or channel (in the format @channelusername)
+            supergroup or channel (in the format @channelusername). Channel direct
+            messages chats aren't supported; leave the corresponding channel
+            instead.
         """
         pass
 
@@ -9225,6 +10544,493 @@ class Teleapi(Protocol):
         """
         pass
 
+    def sendGift(
+            self,
+            *,
+            gift_id: str,
+            user_id: Optional[int] = None,
+            chat_id: Optional[Union[int, str]] = None,
+            pay_for_upgrade: Optional[bool] = None,
+            text: Optional[str] = None,
+            text_parse_mode: Optional[str] = None,
+            text_entities: Optional[List['MessageEntity']] = None,
+    ) -> bool:
+        """
+        Sends a gift to the given user or channel chat. The gift can't be
+        converted to Telegram Stars by the receiver. Returns True on success.
+
+        :param gift_id: Identifier of the gift
+        :param user_id: Required if chat_id is not specified. Unique identifier of the target
+            user who will receive the gift.
+        :param chat_id: Required if user_id is not specified. Unique identifier for the chat
+            or username of the channel (in the format @channelusername) that will
+            receive the gift.
+        :param pay_for_upgrade: Pass True to pay for the gift upgrade from the bot's balance, thereby
+            making the upgrade free for the receiver
+        :param text: Text that will be shown along with the gift; 0-128 characters
+        :param text_parse_mode: Mode for parsing entities in the text. See formatting options for more
+            details. Entities other than “bold”, “italic”, “underline”,
+            “strikethrough”, “spoiler”, and “custom_emoji” are ignored.
+        :param text_entities: A JSON-serialized list of special entities that appear in the gift
+            text. It can be specified instead of text_parse_mode. Entities other
+            than “bold”, “italic”, “underline”, “strikethrough”, “spoiler”, and
+            “custom_emoji” are ignored.
+        """
+        pass
+
+    def giftPremiumSubscription(
+            self,
+            *,
+            user_id: int,
+            month_count: int,
+            star_count: int,
+            text: Optional[str] = None,
+            text_parse_mode: Optional[str] = None,
+            text_entities: Optional[List['MessageEntity']] = None,
+    ) -> bool:
+        """
+        Gifts a Telegram Premium subscription to the given user. Returns True
+        on success.
+
+        :param user_id: Unique identifier of the target user who will receive a Telegram
+            Premium subscription
+        :param month_count: Number of months the Telegram Premium subscription will be active for
+            the user; must be one of 3, 6, or 12
+        :param star_count: Number of Telegram Stars to pay for the Telegram Premium subscription;
+            must be 1000 for 3 months, 1500 for 6 months, and 2500 for 12 months
+        :param text: Text that will be shown along with the service message about the
+            subscription; 0-128 characters
+        :param text_parse_mode: Mode for parsing entities in the text. See formatting options for more
+            details. Entities other than “bold”, “italic”, “underline”,
+            “strikethrough”, “spoiler”, and “custom_emoji” are ignored.
+        :param text_entities: A JSON-serialized list of special entities that appear in the gift
+            text. It can be specified instead of text_parse_mode. Entities other
+            than “bold”, “italic”, “underline”, “strikethrough”, “spoiler”, and
+            “custom_emoji” are ignored.
+        """
+        pass
+
+    def verifyUser(
+            self,
+            *,
+            user_id: int,
+            custom_description: Optional[str] = None,
+    ) -> bool:
+        """
+        Verifies a user on behalf of the organization which is represented by
+        the bot. Returns True on success.
+
+        :param user_id: Unique identifier of the target user
+        :param custom_description: Custom description for the verification; 0-70 characters. Must be
+            empty if the organization isn't allowed to provide a custom
+            verification description.
+        """
+        pass
+
+    def verifyChat(
+            self,
+            *,
+            chat_id: Union[int, str],
+            custom_description: Optional[str] = None,
+    ) -> bool:
+        """
+        Verifies a chat on behalf of the organization which is represented by
+        the bot. Returns True on success.
+
+        :param chat_id: Unique identifier for the target chat or username of the target
+            channel (in the format @channelusername). Channel direct messages
+            chats can't be verified.
+        :param custom_description: Custom description for the verification; 0-70 characters. Must be
+            empty if the organization isn't allowed to provide a custom
+            verification description.
+        """
+        pass
+
+    def removeUserVerification(
+            self,
+            *,
+            user_id: int,
+    ) -> bool:
+        """
+        Removes verification from a user who is currently verified on behalf
+        of the organization represented by the bot. Returns True on success.
+
+        :param user_id: Unique identifier of the target user
+        """
+        pass
+
+    def removeChatVerification(
+            self,
+            *,
+            chat_id: Union[int, str],
+    ) -> bool:
+        """
+        Removes verification from a chat that is currently verified on behalf
+        of the organization represented by the bot. Returns True on success.
+
+        :param chat_id: Unique identifier for the target chat or username of the target
+            channel (in the format @channelusername)
+        """
+        pass
+
+    def readBusinessMessage(
+            self,
+            *,
+            business_connection_id: str,
+            chat_id: int,
+            message_id: int,
+    ) -> bool:
+        """
+        Marks incoming message as read on behalf of a business account.
+        Requires the can_read_messages business bot right. Returns True on
+        success.
+
+        :param business_connection_id: Unique identifier of the business connection on behalf of which to
+            read the message
+        :param chat_id: Unique identifier of the chat in which the message was received. The
+            chat must have been active in the last 24 hours.
+        :param message_id: Unique identifier of the message to mark as read
+        """
+        pass
+
+    def deleteBusinessMessages(
+            self,
+            *,
+            business_connection_id: str,
+            message_ids: List[int],
+    ) -> bool:
+        """
+        Delete messages on behalf of a business account. Requires the
+        can_delete_sent_messages business bot right to delete messages sent by
+        the bot itself, or the can_delete_all_messages business bot right to
+        delete any message. Returns True on success.
+
+        :param business_connection_id: Unique identifier of the business connection on behalf of which to
+            delete the messages
+        :param message_ids: A JSON-serialized list of 1-100 identifiers of messages to delete. All
+            messages must be from the same chat. See deleteMessage for limitations
+            on which messages can be deleted
+        """
+        pass
+
+    def setBusinessAccountName(
+            self,
+            *,
+            business_connection_id: str,
+            first_name: str,
+            last_name: Optional[str] = None,
+    ) -> bool:
+        """
+        Changes the first and last name of a managed business account.
+        Requires the can_change_name business bot right. Returns True on
+        success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param first_name: The new value of the first name for the business account; 1-64
+            characters
+        :param last_name: The new value of the last name for the business account; 0-64
+            characters
+        """
+        pass
+
+    def setBusinessAccountUsername(
+            self,
+            *,
+            business_connection_id: str,
+            username: Optional[str] = None,
+    ) -> bool:
+        """
+        Changes the username of a managed business account. Requires the
+        can_change_username business bot right. Returns True on success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param username: The new value of the username for the business account; 0-32
+            characters
+        """
+        pass
+
+    def setBusinessAccountBio(
+            self,
+            *,
+            business_connection_id: str,
+            bio: Optional[str] = None,
+    ) -> bool:
+        """
+        Changes the bio of a managed business account. Requires the
+        can_change_bio business bot right. Returns True on success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param bio: The new value of the bio for the business account; 0-140 characters
+        """
+        pass
+
+    def setBusinessAccountProfilePhoto(
+            self,
+            *,
+            business_connection_id: str,
+            photo: 'InputProfilePhoto',
+            is_public: Optional[bool] = None,
+    ) -> bool:
+        """
+        Changes the profile photo of a managed business account. Requires the
+        can_edit_profile_photo business bot right. Returns True on success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param photo: The new profile photo to set
+        :param is_public: Pass True to set the public photo, which will be visible even if the
+            main photo is hidden by the business account's privacy settings. An
+            account can have only one public photo.
+        """
+        pass
+
+    def removeBusinessAccountProfilePhoto(
+            self,
+            *,
+            business_connection_id: str,
+            is_public: Optional[bool] = None,
+    ) -> bool:
+        """
+        Removes the current profile photo of a managed business account.
+        Requires the can_edit_profile_photo business bot right. Returns True
+        on success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param is_public: Pass True to remove the public photo, which is visible even if the
+            main photo is hidden by the business account's privacy settings. After
+            the main photo is removed, the previous profile photo (if present)
+            becomes the main photo.
+        """
+        pass
+
+    def setBusinessAccountGiftSettings(
+            self,
+            *,
+            business_connection_id: str,
+            show_gift_button: bool,
+            accepted_gift_types: 'AcceptedGiftTypes',
+    ) -> bool:
+        """
+        Changes the privacy settings pertaining to incoming gifts in a managed
+        business account. Requires the can_change_gift_settings business bot
+        right. Returns True on success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param show_gift_button: Pass True, if a button for sending a gift to the user or by the
+            business account must always be shown in the input field
+        :param accepted_gift_types: Types of gifts accepted by the business account
+        """
+        pass
+
+    def getBusinessAccountStarBalance(
+            self,
+            *,
+            business_connection_id: str,
+    ) -> 'StarAmount':
+        """
+        Returns the amount of Telegram Stars owned by a managed business
+        account. Requires the can_view_gifts_and_stars business bot right.
+        Returns StarAmount on success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        """
+        pass
+
+    def transferBusinessAccountStars(
+            self,
+            *,
+            business_connection_id: str,
+            star_count: int,
+    ) -> bool:
+        """
+        Transfers Telegram Stars from the business account balance to the
+        bot's balance. Requires the can_transfer_stars business bot right.
+        Returns True on success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param star_count: Number of Telegram Stars to transfer; 1-10000
+        """
+        pass
+
+    def getBusinessAccountGifts(
+            self,
+            *,
+            business_connection_id: str,
+            exclude_unsaved: Optional[bool] = None,
+            exclude_saved: Optional[bool] = None,
+            exclude_unlimited: Optional[bool] = None,
+            exclude_limited: Optional[bool] = None,
+            exclude_unique: Optional[bool] = None,
+            sort_by_price: Optional[bool] = None,
+            offset: Optional[str] = None,
+            limit: Optional[int] = None,
+    ) -> 'OwnedGifts':
+        """
+        Returns the gifts received and owned by a managed business account.
+        Requires the can_view_gifts_and_stars business bot right. Returns
+        OwnedGifts on success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param exclude_unsaved: Pass True to exclude gifts that aren't saved to the account's profile
+            page
+        :param exclude_saved: Pass True to exclude gifts that are saved to the account's profile
+            page
+        :param exclude_unlimited: Pass True to exclude gifts that can be purchased an unlimited number
+            of times
+        :param exclude_limited: Pass True to exclude gifts that can be purchased a limited number of
+            times
+        :param exclude_unique: Pass True to exclude unique gifts
+        :param sort_by_price: Pass True to sort results by gift price instead of send date. Sorting
+            is applied before pagination.
+        :param offset: Offset of the first entry to return as received from the previous
+            request; use empty string to get the first chunk of results
+        :param limit: The maximum number of gifts to be returned; 1-100. Defaults to 100
+        """
+        pass
+
+    def convertGiftToStars(
+            self,
+            *,
+            business_connection_id: str,
+            owned_gift_id: str,
+    ) -> bool:
+        """
+        Converts a given regular gift to Telegram Stars. Requires the
+        can_convert_gifts_to_stars business bot right. Returns True on
+        success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param owned_gift_id: Unique identifier of the regular gift that should be converted to
+            Telegram Stars
+        """
+        pass
+
+    def upgradeGift(
+            self,
+            *,
+            business_connection_id: str,
+            owned_gift_id: str,
+            keep_original_details: Optional[bool] = None,
+            star_count: Optional[int] = None,
+    ) -> bool:
+        """
+        Upgrades a given regular gift to a unique gift. Requires the
+        can_transfer_and_upgrade_gifts business bot right. Additionally
+        requires the can_transfer_stars business bot right if the upgrade is
+        paid. Returns True on success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param owned_gift_id: Unique identifier of the regular gift that should be upgraded to a
+            unique one
+        :param keep_original_details: Pass True to keep the original gift text, sender and receiver in the
+            upgraded gift
+        :param star_count: The amount of Telegram Stars that will be paid for the upgrade from
+            the business account balance. If gift.prepaid_upgrade_star_count > 0,
+            then pass 0, otherwise, the can_transfer_stars business bot right is
+            required and gift.upgrade_star_count must be passed.
+        """
+        pass
+
+    def transferGift(
+            self,
+            *,
+            business_connection_id: str,
+            owned_gift_id: str,
+            new_owner_chat_id: int,
+            star_count: Optional[int] = None,
+    ) -> bool:
+        """
+        Transfers an owned unique gift to another user. Requires the
+        can_transfer_and_upgrade_gifts business bot right. Requires
+        can_transfer_stars business bot right if the transfer is paid. Returns
+        True on success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param owned_gift_id: Unique identifier of the regular gift that should be transferred
+        :param new_owner_chat_id: Unique identifier of the chat which will own the gift. The chat must
+            be active in the last 24 hours.
+        :param star_count: The amount of Telegram Stars that will be paid for the transfer from
+            the business account balance. If positive, then the can_transfer_stars
+            business bot right is required.
+        """
+        pass
+
+    def postStory(
+            self,
+            *,
+            business_connection_id: str,
+            content: 'InputStoryContent',
+            active_period: int,
+            caption: Optional[str] = None,
+            parse_mode: Optional[str] = None,
+            caption_entities: Optional[List['MessageEntity']] = None,
+            areas: Optional[List['StoryArea']] = None,
+            post_to_chat_page: Optional[bool] = None,
+            protect_content: Optional[bool] = None,
+    ) -> 'Story':
+        """
+        Posts a story on behalf of a managed business account. Requires the
+        can_manage_stories business bot right. Returns Story on success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param content: Content of the story
+        :param active_period: Period after which the story is moved to the archive, in seconds; must
+            be one of 6 * 3600, 12 * 3600, 86400, or 2 * 86400
+        :param caption: Caption of the story, 0-2048 characters after entities parsing
+        :param parse_mode: Mode for parsing entities in the story caption. See formatting options
+            for more details.
+        :param caption_entities: A JSON-serialized list of special entities that appear in the caption,
+            which can be specified instead of parse_mode
+        :param areas: A JSON-serialized list of clickable areas to be shown on the story
+        :param post_to_chat_page: Pass True to keep the story accessible after it expires
+        :param protect_content: Pass True if the content of the story must be protected from
+            forwarding and screenshotting
+        """
+        pass
+
+    def editStory(
+            self,
+            *,
+            business_connection_id: str,
+            story_id: int,
+            content: 'InputStoryContent',
+            caption: Optional[str] = None,
+            parse_mode: Optional[str] = None,
+            caption_entities: Optional[List['MessageEntity']] = None,
+            areas: Optional[List['StoryArea']] = None,
+    ) -> 'Story':
+        """
+        Edits a story previously posted by the bot on behalf of a managed
+        business account. Requires the can_manage_stories business bot right.
+        Returns Story on success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param story_id: Unique identifier of the story to edit
+        :param content: Content of the story
+        :param caption: Caption of the story, 0-2048 characters after entities parsing
+        :param parse_mode: Mode for parsing entities in the story caption. See formatting options
+            for more details.
+        :param caption_entities: A JSON-serialized list of special entities that appear in the caption,
+            which can be specified instead of parse_mode
+        :param areas: A JSON-serialized list of clickable areas to be shown on the story
+        """
+        pass
+
+    def deleteStory(
+            self,
+            *,
+            business_connection_id: str,
+            story_id: int,
+    ) -> bool:
+        """
+        Deletes a story previously posted by the bot on behalf of a managed
+        business account. Requires the can_manage_stories business bot right.
+        Returns True on success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param story_id: Unique identifier of the story to delete
+        """
+        pass
+
     def editMessageText(
             self,
             *,
@@ -9416,6 +11222,28 @@ class Teleapi(Protocol):
         """
         pass
 
+    def editMessageChecklist(
+            self,
+            *,
+            business_connection_id: str,
+            chat_id: int,
+            message_id: int,
+            checklist: 'InputChecklist',
+            reply_markup: Optional['InlineKeyboardMarkup'] = None,
+    ) -> 'Message':
+        """
+        Use this method to edit a checklist on behalf of a connected business
+        account. On success, the edited Message is returned.
+
+        :param business_connection_id: Unique identifier of the business connection on behalf of which the
+            message will be sent
+        :param chat_id: Unique identifier for the target chat
+        :param message_id: Unique identifier for the target message
+        :param checklist: A JSON-serialized object for the new checklist
+        :param reply_markup: A JSON-serialized object for the new inline keyboard for the message
+        """
+        pass
+
     def editMessageReplyMarkup(
             self,
             *,
@@ -9466,6 +11294,45 @@ class Teleapi(Protocol):
         """
         pass
 
+    def approveSuggestedPost(
+            self,
+            *,
+            chat_id: int,
+            message_id: int,
+            send_date: Optional[int] = None,
+    ) -> bool:
+        """
+        Use this method to approve a suggested post in a direct messages chat.
+        The bot must have the 'can_post_messages' administrator right in the
+        corresponding channel chat. Returns True on success.
+
+        :param chat_id: Unique identifier for the target direct messages chat
+        :param message_id: Identifier of a suggested post message to approve
+        :param send_date: Point in time (Unix timestamp) when the post is expected to be
+            published; omit if the date has already been specified when the
+            suggested post was created. If specified, then the date must be not
+            more than 2678400 seconds (30 days) in the future
+        """
+        pass
+
+    def declineSuggestedPost(
+            self,
+            *,
+            chat_id: int,
+            message_id: int,
+            comment: Optional[str] = None,
+    ) -> bool:
+        """
+        Use this method to decline a suggested post in a direct messages chat.
+        The bot must have the 'can_manage_direct_messages' administrator right
+        in the corresponding channel chat. Returns True on success.
+
+        :param chat_id: Unique identifier for the target direct messages chat
+        :param message_id: Identifier of a suggested post message to decline
+        :param comment: Comment for the creator of the suggested post; 0-128 characters
+        """
+        pass
+
     def deleteMessage(
             self,
             *,
@@ -9483,8 +11350,10 @@ class Teleapi(Protocol):
         Bots granted can_post_messages permissions can delete outgoing
         messages in channels.- If the bot is an administrator of a group, it
         can delete any message there.- If the bot has can_delete_messages
-        permission in a supergroup or a channel, it can delete any message
-        there.Returns True on success.
+        administrator right in a supergroup or a channel, it can delete any
+        message there.- If the bot has can_manage_direct_messages
+        administrator right in a channel, it can delete any message in the
+        corresponding direct messages chat.Returns True on success.
 
         :param chat_id: Unique identifier for the target chat or username of the target
             channel (in the format @channelusername)
@@ -9517,11 +11386,13 @@ class Teleapi(Protocol):
             sticker: Union['InputFile', str],
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             emoji: Optional[str] = None,
             disable_notification: Optional[bool] = None,
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -9541,6 +11412,8 @@ class Teleapi(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param emoji: Emoji associated with the sticker; only for just uploaded stickers
         :param disable_notification: Sends the message silently. Users will receive a notification with no
             sound.
@@ -9550,6 +11423,10 @@ class Teleapi(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -9838,102 +11715,6 @@ class Teleapi(Protocol):
         """
         pass
 
-    def sendGift(
-            self,
-            *,
-            gift_id: str,
-            user_id: Optional[int] = None,
-            chat_id: Optional[Union[int, str]] = None,
-            pay_for_upgrade: Optional[bool] = None,
-            text: Optional[str] = None,
-            text_parse_mode: Optional[str] = None,
-            text_entities: Optional[List['MessageEntity']] = None,
-    ) -> bool:
-        """
-        Sends a gift to the given user or channel chat. The gift can't be
-        converted to Telegram Stars by the receiver. Returns True on success.
-
-        :param gift_id: Identifier of the gift
-        :param user_id: Required if chat_id is not specified. Unique identifier of the target
-            user who will receive the gift.
-        :param chat_id: Required if user_id is not specified. Unique identifier for the chat
-            or username of the channel (in the format @channelusername) that will
-            receive the gift.
-        :param pay_for_upgrade: Pass True to pay for the gift upgrade from the bot's balance, thereby
-            making the upgrade free for the receiver
-        :param text: Text that will be shown along with the gift; 0-128 characters
-        :param text_parse_mode: Mode for parsing entities in the text. See formatting options for more
-            details. Entities other than “bold”, “italic”, “underline”,
-            “strikethrough”, “spoiler”, and “custom_emoji” are ignored.
-        :param text_entities: A JSON-serialized list of special entities that appear in the gift
-            text. It can be specified instead of text_parse_mode. Entities other
-            than “bold”, “italic”, “underline”, “strikethrough”, “spoiler”, and
-            “custom_emoji” are ignored.
-        """
-        pass
-
-    def verifyUser(
-            self,
-            *,
-            user_id: int,
-            custom_description: Optional[str] = None,
-    ) -> bool:
-        """
-        Verifies a user on behalf of the organization which is represented by
-        the bot. Returns True on success.
-
-        :param user_id: Unique identifier of the target user
-        :param custom_description: Custom description for the verification; 0-70 characters. Must be
-            empty if the organization isn't allowed to provide a custom
-            verification description.
-        """
-        pass
-
-    def verifyChat(
-            self,
-            *,
-            chat_id: Union[int, str],
-            custom_description: Optional[str] = None,
-    ) -> bool:
-        """
-        Verifies a chat on behalf of the organization which is represented by
-        the bot. Returns True on success.
-
-        :param chat_id: Unique identifier for the target chat or username of the target
-            channel (in the format @channelusername)
-        :param custom_description: Custom description for the verification; 0-70 characters. Must be
-            empty if the organization isn't allowed to provide a custom
-            verification description.
-        """
-        pass
-
-    def removeUserVerification(
-            self,
-            *,
-            user_id: int,
-    ) -> bool:
-        """
-        Removes verification from a user who is currently verified on behalf
-        of the organization represented by the bot. Returns True on success.
-
-        :param user_id: Unique identifier of the target user
-        """
-        pass
-
-    def removeChatVerification(
-            self,
-            *,
-            chat_id: Union[int, str],
-    ) -> bool:
-        """
-        Removes verification from a chat that is currently verified on behalf
-        of the organization represented by the bot. Returns True on success.
-
-        :param chat_id: Unique identifier for the target chat or username of the target
-            channel (in the format @channelusername)
-        """
-        pass
-
     def answerInlineQuery(
             self,
             *,
@@ -10014,6 +11795,7 @@ class Teleapi(Protocol):
             currency: str,
             prices: List['LabeledPrice'],
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             provider_token: Optional[str] = None,
             max_tip_amount: Optional[int] = None,
             suggested_tip_amounts: Optional[List[int]] = None,
@@ -10034,6 +11816,7 @@ class Teleapi(Protocol):
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional['InlineKeyboardMarkup'] = None,
     ) -> 'Message':
@@ -10054,6 +11837,8 @@ class Teleapi(Protocol):
             contain exactly one item for payments in Telegram Stars.
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param provider_token: Payment provider token, obtained via @BotFather. Pass an empty string
             for payments in Telegram Stars.
         :param max_tip_amount: The maximum accepted amount for tips in the smallest units of the
@@ -10104,6 +11889,10 @@ class Teleapi(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: A JSON-serialized object for an inline keyboard. If empty, one 'Pay
             total price' button will be shown. If not empty, the first button must
@@ -10159,7 +11948,7 @@ class Teleapi(Protocol):
             the parameter is used. Currently, it must always be 2592000 (30 days)
             if specified. Any number of subscriptions can be active for a given
             bot at the same time, including multiple concurrent subscriptions from
-            the same user. Subscription price must no exceed 2500 Telegram Stars.
+            the same user. Subscription price must no exceed 10000 Telegram Stars.
         :param max_tip_amount: The maximum accepted amount for tips in the smallest units of the
             currency (integer, not float/double). For example, for a maximum tip
             of US$ 1.45 pass max_tip_amount = 145. See the exp parameter in
@@ -10248,6 +12037,15 @@ class Teleapi(Protocol):
             while you were busy filling out your payment details. Please choose a
             different color or garment!\"). Telegram will display this message to
             the user.
+        """
+        pass
+
+    def getMyStarBalance(
+            self,
+    ) -> 'StarAmount':
+        """
+        A method to get the current Telegram Stars balance of the bot.
+        Requires no parameters. On success, returns a StarAmount object.
         """
         pass
 
@@ -10344,7 +12142,8 @@ class Teleapi(Protocol):
         Use this method to send a game. On success, the sent Message is
         returned.
 
-        :param chat_id: Unique identifier for the target chat
+        :param chat_id: Unique identifier for the target chat. Games can't be sent to channel
+            direct messages chats and channel chats.
         :param game_short_name: Short name of the game, serves as the unique identifier for the game.
             Set up your games via @BotFather.
         :param business_connection_id: Unique identifier of the business connection on behalf of which the
@@ -10579,6 +12378,7 @@ class TeleapiAsync(Protocol):
             text: str,
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             parse_mode: Optional[str] = None,
             entities: Optional[List['MessageEntity']] = None,
             link_preview_options: Optional['LinkPreviewOptions'] = None,
@@ -10586,6 +12386,7 @@ class TeleapiAsync(Protocol):
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -10601,6 +12402,8 @@ class TeleapiAsync(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param parse_mode: Mode for parsing entities in the message text. See formatting options
             for more details.
         :param entities: A JSON-serialized list of special entities that appear in message
@@ -10614,6 +12417,10 @@ class TeleapiAsync(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -10628,9 +12435,11 @@ class TeleapiAsync(Protocol):
             from_chat_id: Union[int, str],
             message_id: int,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             video_start_timestamp: Optional[int] = None,
             disable_notification: Optional[bool] = None,
             protect_content: Optional[bool] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
     ) -> 'Message':
         """
         Use this method to forward messages of any kind. Service messages and
@@ -10644,11 +12453,16 @@ class TeleapiAsync(Protocol):
         :param message_id: Message identifier in the chat specified in from_chat_id
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            forwarded; required if the message is forwarded to a direct messages
+            chat
         :param video_start_timestamp: New start timestamp for the forwarded video in the message
         :param disable_notification: Sends the message silently. Users will receive a notification with no
             sound.
         :param protect_content: Protects the contents of the forwarded message from forwarding and
             saving
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only
         """
         pass
 
@@ -10659,6 +12473,7 @@ class TeleapiAsync(Protocol):
             from_chat_id: Union[int, str],
             message_ids: List[int],
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             disable_notification: Optional[bool] = None,
             protect_content: Optional[bool] = None,
     ) -> List['MessageId']:
@@ -10678,6 +12493,9 @@ class TeleapiAsync(Protocol):
             strictly increasing order.
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the messages will be
+            forwarded; required if the messages are forwarded to a direct messages
+            chat
         :param disable_notification: Sends the messages silently. Users will receive a notification with no
             sound.
         :param protect_content: Protects the contents of the forwarded messages from forwarding and
@@ -10692,6 +12510,7 @@ class TeleapiAsync(Protocol):
             from_chat_id: Union[int, str],
             message_id: int,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             video_start_timestamp: Optional[int] = None,
             caption: Optional[str] = None,
             parse_mode: Optional[str] = None,
@@ -10700,6 +12519,7 @@ class TeleapiAsync(Protocol):
             disable_notification: Optional[bool] = None,
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'MessageId':
@@ -10719,6 +12539,8 @@ class TeleapiAsync(Protocol):
         :param message_id: Message identifier in the chat specified in from_chat_id
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param video_start_timestamp: New start timestamp for the copied video in the message
         :param caption: New caption for media, 0-1024 characters after entities parsing. If
             not specified, the original caption is kept
@@ -10734,6 +12556,10 @@ class TeleapiAsync(Protocol):
         :param allow_paid_broadcast: Pass True to allow up to 1000 messages per second, ignoring
             broadcasting limits for a fee of 0.1 Telegram Stars per message. The
             relevant Stars will be withdrawn from the bot's balance
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -10748,6 +12574,7 @@ class TeleapiAsync(Protocol):
             from_chat_id: Union[int, str],
             message_ids: List[int],
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             disable_notification: Optional[bool] = None,
             protect_content: Optional[bool] = None,
             remove_caption: Optional[bool] = None,
@@ -10772,6 +12599,8 @@ class TeleapiAsync(Protocol):
             increasing order.
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the messages will be
+            sent; required if the messages are sent to a direct messages chat
         :param disable_notification: Sends the messages silently. Users will receive a notification with no
             sound.
         :param protect_content: Protects the contents of the sent messages from forwarding and saving
@@ -10786,6 +12615,7 @@ class TeleapiAsync(Protocol):
             photo: Union['InputFile', str],
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             caption: Optional[str] = None,
             parse_mode: Optional[str] = None,
             caption_entities: Optional[List['MessageEntity']] = None,
@@ -10795,6 +12625,7 @@ class TeleapiAsync(Protocol):
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -10814,6 +12645,8 @@ class TeleapiAsync(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param caption: Photo caption (may also be used when resending photos by file_id),
             0-1024 characters after entities parsing
         :param parse_mode: Mode for parsing entities in the photo caption. See formatting options
@@ -10830,6 +12663,10 @@ class TeleapiAsync(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -10844,6 +12681,7 @@ class TeleapiAsync(Protocol):
             audio: Union['InputFile', str],
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             caption: Optional[str] = None,
             parse_mode: Optional[str] = None,
             caption_entities: Optional[List['MessageEntity']] = None,
@@ -10855,6 +12693,7 @@ class TeleapiAsync(Protocol):
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -10878,6 +12717,8 @@ class TeleapiAsync(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param caption: Audio caption, 0-1024 characters after entities parsing
         :param parse_mode: Mode for parsing entities in the audio caption. See formatting options
             for more details.
@@ -10902,6 +12743,10 @@ class TeleapiAsync(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -10916,6 +12761,7 @@ class TeleapiAsync(Protocol):
             document: Union['InputFile', str],
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             thumbnail: Optional[Union['InputFile', str]] = None,
             caption: Optional[str] = None,
             parse_mode: Optional[str] = None,
@@ -10925,6 +12771,7 @@ class TeleapiAsync(Protocol):
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -10943,6 +12790,8 @@ class TeleapiAsync(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param thumbnail: Thumbnail of the file sent; can be ignored if thumbnail generation for
             the file is supported server-side. The thumbnail should be in JPEG
             format and less than 200 kB in size. A thumbnail's width and height
@@ -10967,6 +12816,10 @@ class TeleapiAsync(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -10981,6 +12834,7 @@ class TeleapiAsync(Protocol):
             video: Union['InputFile', str],
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             duration: Optional[int] = None,
             width: Optional[int] = None,
             height: Optional[int] = None,
@@ -10997,6 +12851,7 @@ class TeleapiAsync(Protocol):
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -11016,6 +12871,8 @@ class TeleapiAsync(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param duration: Duration of sent video in seconds
         :param width: Video width
         :param height: Video height
@@ -11051,6 +12908,10 @@ class TeleapiAsync(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -11065,6 +12926,7 @@ class TeleapiAsync(Protocol):
             animation: Union['InputFile', str],
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             duration: Optional[int] = None,
             width: Optional[int] = None,
             height: Optional[int] = None,
@@ -11078,6 +12940,7 @@ class TeleapiAsync(Protocol):
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -11098,6 +12961,8 @@ class TeleapiAsync(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param duration: Duration of sent animation in seconds
         :param width: Animation width
         :param height: Animation height
@@ -11126,6 +12991,10 @@ class TeleapiAsync(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -11140,6 +13009,7 @@ class TeleapiAsync(Protocol):
             voice: Union['InputFile', str],
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             caption: Optional[str] = None,
             parse_mode: Optional[str] = None,
             caption_entities: Optional[List['MessageEntity']] = None,
@@ -11148,6 +13018,7 @@ class TeleapiAsync(Protocol):
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -11170,6 +13041,8 @@ class TeleapiAsync(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param caption: Voice message caption, 0-1024 characters after entities parsing
         :param parse_mode: Mode for parsing entities in the voice message caption. See formatting
             options for more details.
@@ -11184,6 +13057,10 @@ class TeleapiAsync(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -11198,6 +13075,7 @@ class TeleapiAsync(Protocol):
             video_note: Union['InputFile', str],
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             duration: Optional[int] = None,
             length: Optional[int] = None,
             thumbnail: Optional[Union['InputFile', str]] = None,
@@ -11205,6 +13083,7 @@ class TeleapiAsync(Protocol):
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -11223,6 +13102,8 @@ class TeleapiAsync(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param duration: Duration of sent video in seconds
         :param length: Video width and height, i.e. diameter of the video message
         :param thumbnail: Thumbnail of the file sent; can be ignored if thumbnail generation for
@@ -11241,6 +13122,10 @@ class TeleapiAsync(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -11255,6 +13140,8 @@ class TeleapiAsync(Protocol):
             star_count: int,
             media: List['InputPaidMedia'],
             business_connection_id: Optional[str] = None,
+            message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             payload: Optional[str] = None,
             caption: Optional[str] = None,
             parse_mode: Optional[str] = None,
@@ -11263,6 +13150,7 @@ class TeleapiAsync(Protocol):
             disable_notification: Optional[bool] = None,
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -11275,11 +13163,15 @@ class TeleapiAsync(Protocol):
             all Telegram Star proceeds from this media will be credited to the
             chat's balance. Otherwise, they will be credited to the bot's balance.
         :param star_count: The number of Telegram Stars that must be paid to buy access to the
-            media; 1-2500
+            media; 1-10000
         :param media: A JSON-serialized array describing the media to be sent; up to 10
             items
         :param business_connection_id: Unique identifier of the business connection on behalf of which the
             message will be sent
+        :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
+            for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param payload: Bot-defined paid media payload, 0-128 bytes. This will not be
             displayed to the user, use it for your internal processes.
         :param caption: Media caption, 0-1024 characters after entities parsing
@@ -11294,6 +13186,10 @@ class TeleapiAsync(Protocol):
         :param allow_paid_broadcast: Pass True to allow up to 1000 messages per second, ignoring
             broadcasting limits for a fee of 0.1 Telegram Stars per message. The
             relevant Stars will be withdrawn from the bot's balance
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -11308,6 +13204,7 @@ class TeleapiAsync(Protocol):
             media: List['InputMediaAudio, InputMediaDocument, InputMediaPhoto and InputMediaVideo'],
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             disable_notification: Optional[bool] = None,
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
@@ -11317,8 +13214,8 @@ class TeleapiAsync(Protocol):
         """
         Use this method to send a group of photos, videos, documents or audios
         as an album. Documents and audio files can be only grouped in an album
-        with messages of the same type. On success, an array of Messages that
-        were sent is returned.
+        with messages of the same type. On success, an array of Message
+        objects that were sent is returned.
 
         :param chat_id: Unique identifier for the target chat or username of the target
             channel (in the format @channelusername)
@@ -11328,6 +13225,8 @@ class TeleapiAsync(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the messages will be
+            sent; required if the messages are sent to a direct messages chat
         :param disable_notification: Sends messages silently. Users will receive a notification with no
             sound.
         :param protect_content: Protects the contents of the sent messages from forwarding and saving
@@ -11348,6 +13247,7 @@ class TeleapiAsync(Protocol):
             longitude: float,
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             horizontal_accuracy: Optional[float] = None,
             live_period: Optional[int] = None,
             heading: Optional[int] = None,
@@ -11356,6 +13256,7 @@ class TeleapiAsync(Protocol):
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -11371,6 +13272,8 @@ class TeleapiAsync(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param horizontal_accuracy: The radius of uncertainty for the location, measured in meters; 0-1500
         :param live_period: Period in seconds during which the location will be updated (see Live
             Locations, should be between 60 and 86400, or 0x7FFFFFFF for live
@@ -11388,6 +13291,10 @@ class TeleapiAsync(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -11405,6 +13312,7 @@ class TeleapiAsync(Protocol):
             address: str,
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             foursquare_id: Optional[str] = None,
             foursquare_type: Optional[str] = None,
             google_place_id: Optional[str] = None,
@@ -11413,6 +13321,7 @@ class TeleapiAsync(Protocol):
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -11430,6 +13339,8 @@ class TeleapiAsync(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param foursquare_id: Foursquare identifier of the venue
         :param foursquare_type: Foursquare type of the venue, if known. (For example,
             “arts_entertainment/default”, “arts_entertainment/aquarium” or
@@ -11444,6 +13355,10 @@ class TeleapiAsync(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -11459,12 +13374,14 @@ class TeleapiAsync(Protocol):
             first_name: str,
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             last_name: Optional[str] = None,
             vcard: Optional[str] = None,
             disable_notification: Optional[bool] = None,
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -11480,6 +13397,8 @@ class TeleapiAsync(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param last_name: Contact's last name
         :param vcard: Additional data about the contact in the form of a vCard, 0-2048 bytes
         :param disable_notification: Sends the message silently. Users will receive a notification with no
@@ -11490,6 +13409,10 @@ class TeleapiAsync(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -11529,9 +13452,10 @@ class TeleapiAsync(Protocol):
         returned.
 
         :param chat_id: Unique identifier for the target chat or username of the target
-            channel (in the format @channelusername)
+            channel (in the format @channelusername). Polls can't be sent to
+            channel direct messages chats.
         :param question: Poll question, 1-300 characters
-        :param options: A JSON-serialized list of 2-10 answer options
+        :param options: A JSON-serialized list of 2-12 answer options
         :param business_connection_id: Unique identifier of the business connection on behalf of which the
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
@@ -11575,17 +13499,48 @@ class TeleapiAsync(Protocol):
         """
         pass
 
+    async def sendChecklist(
+            self,
+            *,
+            business_connection_id: str,
+            chat_id: int,
+            checklist: 'InputChecklist',
+            disable_notification: Optional[bool] = None,
+            protect_content: Optional[bool] = None,
+            message_effect_id: Optional[str] = None,
+            reply_parameters: Optional['ReplyParameters'] = None,
+            reply_markup: Optional['InlineKeyboardMarkup'] = None,
+    ) -> 'Message':
+        """
+        Use this method to send a checklist on behalf of a connected business
+        account. On success, the sent Message is returned.
+
+        :param business_connection_id: Unique identifier of the business connection on behalf of which the
+            message will be sent
+        :param chat_id: Unique identifier for the target chat
+        :param checklist: A JSON-serialized object for the checklist to send
+        :param disable_notification: Sends the message silently. Users will receive a notification with no
+            sound.
+        :param protect_content: Protects the contents of the sent message from forwarding and saving
+        :param message_effect_id: Unique identifier of the message effect to be added to the message
+        :param reply_parameters: A JSON-serialized object for description of the message to reply to
+        :param reply_markup: A JSON-serialized object for an inline keyboard
+        """
+        pass
+
     async def sendDice(
             self,
             *,
             chat_id: Union[int, str],
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             emoji: Optional[str] = None,
             disable_notification: Optional[bool] = None,
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -11599,6 +13554,8 @@ class TeleapiAsync(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param emoji: Emoji on which the dice throw animation is based. Currently, must be
             one of “”, “”, “”, “”, “”, or “”. Dice can have values 1-6 for “”, “”
             and “”, values 1-5 for “” and “”, and values 1-64 for “”. Defaults to
@@ -11611,6 +13568,10 @@ class TeleapiAsync(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -11633,7 +13594,8 @@ class TeleapiAsync(Protocol):
         typing status). Returns True on success.
 
         :param chat_id: Unique identifier for the target chat or username of the target
-            channel (in the format @channelusername)
+            supergroup (in the format @supergroupusername). Channel chats and
+            channel direct messages chats aren't supported.
         :param action: Type of action to broadcast. Choose one, depending on what the user is
             about to receive: typing for text messages, upload_photo for photos,
             record_video or upload_video for videos, record_voice or upload_voice
@@ -11837,6 +13799,7 @@ class TeleapiAsync(Protocol):
             can_edit_messages: Optional[bool] = None,
             can_pin_messages: Optional[bool] = None,
             can_manage_topics: Optional[bool] = None,
+            can_manage_direct_messages: Optional[bool] = None,
     ) -> bool:
         """
         Use this method to promote or demote a user in a supergroup or a
@@ -11850,8 +13813,8 @@ class TeleapiAsync(Protocol):
         :param is_anonymous: Pass True if the administrator's presence in the chat is hidden
         :param can_manage_chat: Pass True if the administrator can access the chat event log, get
             boost list, see hidden supergroup and channel members, report spam
-            messages and ignore slow mode. Implied by any other administrator
-            privilege.
+            messages, ignore slow mode, and send messages to the chat without
+            paying Telegram Stars. Implied by any other administrator privilege.
         :param can_delete_messages: Pass True if the administrator can delete messages of other users
         :param can_manage_video_chats: Pass True if the administrator can manage video chats
         :param can_restrict_members: Pass True if the administrator can restrict, ban or unban chat
@@ -11869,13 +13832,16 @@ class TeleapiAsync(Protocol):
             story archive
         :param can_delete_stories: Pass True if the administrator can delete stories posted by other
             users
-        :param can_post_messages: Pass True if the administrator can post messages in the channel, or
-            access channel statistics; for channels only
+        :param can_post_messages: Pass True if the administrator can post messages in the channel,
+            approve suggested posts, or access channel statistics; for channels
+            only
         :param can_edit_messages: Pass True if the administrator can edit messages of other users and
             can pin messages; for channels only
         :param can_pin_messages: Pass True if the administrator can pin messages; for supergroups only
         :param can_manage_topics: Pass True if the user is allowed to create, rename, close, and reopen
             forum topics; for supergroups only
+        :param can_manage_direct_messages: Pass True if the administrator can manage direct messages within the
+            channel and decline suggested posts; for channels only
         """
         pass
 
@@ -12053,7 +14019,7 @@ class TeleapiAsync(Protocol):
         :param subscription_period: The number of seconds the subscription will be active for before the
             next payment. Currently, it must always be 2592000 (30 days).
         :param subscription_price: The amount of Telegram Stars a user must pay initially and after each
-            subsequent subscription period to be a member of the chat; 1-2500
+            subsequent subscription period to be a member of the chat; 1-10000
         :param name: Invite link name; 0-32 characters
         """
         pass
@@ -12210,11 +14176,11 @@ class TeleapiAsync(Protocol):
     ) -> bool:
         """
         Use this method to add a message to the list of pinned messages in a
-        chat. If the chat is not a private chat, the bot must be an
-        administrator in the chat for this to work and must have the
-        'can_pin_messages' administrator right in a supergroup or
-        'can_edit_messages' administrator right in a channel. Returns True on
-        success.
+        chat. In private chats and channel direct messages chats, all non-
+        service messages can be pinned. Conversely, the bot must be an
+        administrator with the 'can_pin_messages' right or the
+        'can_edit_messages' right to pin messages in groups and channels
+        respectively. Returns True on success.
 
         :param chat_id: Unique identifier for the target chat or username of the target
             channel (in the format @channelusername)
@@ -12236,10 +14202,10 @@ class TeleapiAsync(Protocol):
     ) -> bool:
         """
         Use this method to remove a message from the list of pinned messages
-        in a chat. If the chat is not a private chat, the bot must be an
-        administrator in the chat for this to work and must have the
-        'can_pin_messages' administrator right in a supergroup or
-        'can_edit_messages' administrator right in a channel. Returns True on
+        in a chat. In private chats and channel direct messages chats, all
+        messages can be unpinned. Conversely, the bot must be an administrator
+        with the 'can_pin_messages' right or the 'can_edit_messages' right to
+        unpin messages in groups and channels respectively. Returns True on
         success.
 
         :param chat_id: Unique identifier for the target chat or username of the target
@@ -12258,11 +14224,12 @@ class TeleapiAsync(Protocol):
             chat_id: Union[int, str],
     ) -> bool:
         """
-        Use this method to clear the list of pinned messages in a chat. If the
-        chat is not a private chat, the bot must be an administrator in the
-        chat for this to work and must have the 'can_pin_messages'
-        administrator right in a supergroup or 'can_edit_messages'
-        administrator right in a channel. Returns True on success.
+        Use this method to clear the list of pinned messages in a chat. In
+        private chats and channel direct messages chats, no additional rights
+        are required to unpin all pinned messages. Conversely, the bot must be
+        an administrator with the 'can_pin_messages' right or the
+        'can_edit_messages' right to unpin all pinned messages in groups and
+        channels respectively. Returns True on success.
 
         :param chat_id: Unique identifier for the target chat or username of the target
             channel (in the format @channelusername)
@@ -12279,7 +14246,9 @@ class TeleapiAsync(Protocol):
         Returns True on success.
 
         :param chat_id: Unique identifier for the target chat or username of the target
-            supergroup or channel (in the format @channelusername)
+            supergroup or channel (in the format @channelusername). Channel direct
+            messages chats aren't supported; leave the corresponding channel
+            instead.
         """
         pass
 
@@ -12889,6 +14858,493 @@ class TeleapiAsync(Protocol):
         """
         pass
 
+    async def sendGift(
+            self,
+            *,
+            gift_id: str,
+            user_id: Optional[int] = None,
+            chat_id: Optional[Union[int, str]] = None,
+            pay_for_upgrade: Optional[bool] = None,
+            text: Optional[str] = None,
+            text_parse_mode: Optional[str] = None,
+            text_entities: Optional[List['MessageEntity']] = None,
+    ) -> bool:
+        """
+        Sends a gift to the given user or channel chat. The gift can't be
+        converted to Telegram Stars by the receiver. Returns True on success.
+
+        :param gift_id: Identifier of the gift
+        :param user_id: Required if chat_id is not specified. Unique identifier of the target
+            user who will receive the gift.
+        :param chat_id: Required if user_id is not specified. Unique identifier for the chat
+            or username of the channel (in the format @channelusername) that will
+            receive the gift.
+        :param pay_for_upgrade: Pass True to pay for the gift upgrade from the bot's balance, thereby
+            making the upgrade free for the receiver
+        :param text: Text that will be shown along with the gift; 0-128 characters
+        :param text_parse_mode: Mode for parsing entities in the text. See formatting options for more
+            details. Entities other than “bold”, “italic”, “underline”,
+            “strikethrough”, “spoiler”, and “custom_emoji” are ignored.
+        :param text_entities: A JSON-serialized list of special entities that appear in the gift
+            text. It can be specified instead of text_parse_mode. Entities other
+            than “bold”, “italic”, “underline”, “strikethrough”, “spoiler”, and
+            “custom_emoji” are ignored.
+        """
+        pass
+
+    async def giftPremiumSubscription(
+            self,
+            *,
+            user_id: int,
+            month_count: int,
+            star_count: int,
+            text: Optional[str] = None,
+            text_parse_mode: Optional[str] = None,
+            text_entities: Optional[List['MessageEntity']] = None,
+    ) -> bool:
+        """
+        Gifts a Telegram Premium subscription to the given user. Returns True
+        on success.
+
+        :param user_id: Unique identifier of the target user who will receive a Telegram
+            Premium subscription
+        :param month_count: Number of months the Telegram Premium subscription will be active for
+            the user; must be one of 3, 6, or 12
+        :param star_count: Number of Telegram Stars to pay for the Telegram Premium subscription;
+            must be 1000 for 3 months, 1500 for 6 months, and 2500 for 12 months
+        :param text: Text that will be shown along with the service message about the
+            subscription; 0-128 characters
+        :param text_parse_mode: Mode for parsing entities in the text. See formatting options for more
+            details. Entities other than “bold”, “italic”, “underline”,
+            “strikethrough”, “spoiler”, and “custom_emoji” are ignored.
+        :param text_entities: A JSON-serialized list of special entities that appear in the gift
+            text. It can be specified instead of text_parse_mode. Entities other
+            than “bold”, “italic”, “underline”, “strikethrough”, “spoiler”, and
+            “custom_emoji” are ignored.
+        """
+        pass
+
+    async def verifyUser(
+            self,
+            *,
+            user_id: int,
+            custom_description: Optional[str] = None,
+    ) -> bool:
+        """
+        Verifies a user on behalf of the organization which is represented by
+        the bot. Returns True on success.
+
+        :param user_id: Unique identifier of the target user
+        :param custom_description: Custom description for the verification; 0-70 characters. Must be
+            empty if the organization isn't allowed to provide a custom
+            verification description.
+        """
+        pass
+
+    async def verifyChat(
+            self,
+            *,
+            chat_id: Union[int, str],
+            custom_description: Optional[str] = None,
+    ) -> bool:
+        """
+        Verifies a chat on behalf of the organization which is represented by
+        the bot. Returns True on success.
+
+        :param chat_id: Unique identifier for the target chat or username of the target
+            channel (in the format @channelusername). Channel direct messages
+            chats can't be verified.
+        :param custom_description: Custom description for the verification; 0-70 characters. Must be
+            empty if the organization isn't allowed to provide a custom
+            verification description.
+        """
+        pass
+
+    async def removeUserVerification(
+            self,
+            *,
+            user_id: int,
+    ) -> bool:
+        """
+        Removes verification from a user who is currently verified on behalf
+        of the organization represented by the bot. Returns True on success.
+
+        :param user_id: Unique identifier of the target user
+        """
+        pass
+
+    async def removeChatVerification(
+            self,
+            *,
+            chat_id: Union[int, str],
+    ) -> bool:
+        """
+        Removes verification from a chat that is currently verified on behalf
+        of the organization represented by the bot. Returns True on success.
+
+        :param chat_id: Unique identifier for the target chat or username of the target
+            channel (in the format @channelusername)
+        """
+        pass
+
+    async def readBusinessMessage(
+            self,
+            *,
+            business_connection_id: str,
+            chat_id: int,
+            message_id: int,
+    ) -> bool:
+        """
+        Marks incoming message as read on behalf of a business account.
+        Requires the can_read_messages business bot right. Returns True on
+        success.
+
+        :param business_connection_id: Unique identifier of the business connection on behalf of which to
+            read the message
+        :param chat_id: Unique identifier of the chat in which the message was received. The
+            chat must have been active in the last 24 hours.
+        :param message_id: Unique identifier of the message to mark as read
+        """
+        pass
+
+    async def deleteBusinessMessages(
+            self,
+            *,
+            business_connection_id: str,
+            message_ids: List[int],
+    ) -> bool:
+        """
+        Delete messages on behalf of a business account. Requires the
+        can_delete_sent_messages business bot right to delete messages sent by
+        the bot itself, or the can_delete_all_messages business bot right to
+        delete any message. Returns True on success.
+
+        :param business_connection_id: Unique identifier of the business connection on behalf of which to
+            delete the messages
+        :param message_ids: A JSON-serialized list of 1-100 identifiers of messages to delete. All
+            messages must be from the same chat. See deleteMessage for limitations
+            on which messages can be deleted
+        """
+        pass
+
+    async def setBusinessAccountName(
+            self,
+            *,
+            business_connection_id: str,
+            first_name: str,
+            last_name: Optional[str] = None,
+    ) -> bool:
+        """
+        Changes the first and last name of a managed business account.
+        Requires the can_change_name business bot right. Returns True on
+        success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param first_name: The new value of the first name for the business account; 1-64
+            characters
+        :param last_name: The new value of the last name for the business account; 0-64
+            characters
+        """
+        pass
+
+    async def setBusinessAccountUsername(
+            self,
+            *,
+            business_connection_id: str,
+            username: Optional[str] = None,
+    ) -> bool:
+        """
+        Changes the username of a managed business account. Requires the
+        can_change_username business bot right. Returns True on success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param username: The new value of the username for the business account; 0-32
+            characters
+        """
+        pass
+
+    async def setBusinessAccountBio(
+            self,
+            *,
+            business_connection_id: str,
+            bio: Optional[str] = None,
+    ) -> bool:
+        """
+        Changes the bio of a managed business account. Requires the
+        can_change_bio business bot right. Returns True on success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param bio: The new value of the bio for the business account; 0-140 characters
+        """
+        pass
+
+    async def setBusinessAccountProfilePhoto(
+            self,
+            *,
+            business_connection_id: str,
+            photo: 'InputProfilePhoto',
+            is_public: Optional[bool] = None,
+    ) -> bool:
+        """
+        Changes the profile photo of a managed business account. Requires the
+        can_edit_profile_photo business bot right. Returns True on success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param photo: The new profile photo to set
+        :param is_public: Pass True to set the public photo, which will be visible even if the
+            main photo is hidden by the business account's privacy settings. An
+            account can have only one public photo.
+        """
+        pass
+
+    async def removeBusinessAccountProfilePhoto(
+            self,
+            *,
+            business_connection_id: str,
+            is_public: Optional[bool] = None,
+    ) -> bool:
+        """
+        Removes the current profile photo of a managed business account.
+        Requires the can_edit_profile_photo business bot right. Returns True
+        on success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param is_public: Pass True to remove the public photo, which is visible even if the
+            main photo is hidden by the business account's privacy settings. After
+            the main photo is removed, the previous profile photo (if present)
+            becomes the main photo.
+        """
+        pass
+
+    async def setBusinessAccountGiftSettings(
+            self,
+            *,
+            business_connection_id: str,
+            show_gift_button: bool,
+            accepted_gift_types: 'AcceptedGiftTypes',
+    ) -> bool:
+        """
+        Changes the privacy settings pertaining to incoming gifts in a managed
+        business account. Requires the can_change_gift_settings business bot
+        right. Returns True on success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param show_gift_button: Pass True, if a button for sending a gift to the user or by the
+            business account must always be shown in the input field
+        :param accepted_gift_types: Types of gifts accepted by the business account
+        """
+        pass
+
+    async def getBusinessAccountStarBalance(
+            self,
+            *,
+            business_connection_id: str,
+    ) -> 'StarAmount':
+        """
+        Returns the amount of Telegram Stars owned by a managed business
+        account. Requires the can_view_gifts_and_stars business bot right.
+        Returns StarAmount on success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        """
+        pass
+
+    async def transferBusinessAccountStars(
+            self,
+            *,
+            business_connection_id: str,
+            star_count: int,
+    ) -> bool:
+        """
+        Transfers Telegram Stars from the business account balance to the
+        bot's balance. Requires the can_transfer_stars business bot right.
+        Returns True on success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param star_count: Number of Telegram Stars to transfer; 1-10000
+        """
+        pass
+
+    async def getBusinessAccountGifts(
+            self,
+            *,
+            business_connection_id: str,
+            exclude_unsaved: Optional[bool] = None,
+            exclude_saved: Optional[bool] = None,
+            exclude_unlimited: Optional[bool] = None,
+            exclude_limited: Optional[bool] = None,
+            exclude_unique: Optional[bool] = None,
+            sort_by_price: Optional[bool] = None,
+            offset: Optional[str] = None,
+            limit: Optional[int] = None,
+    ) -> 'OwnedGifts':
+        """
+        Returns the gifts received and owned by a managed business account.
+        Requires the can_view_gifts_and_stars business bot right. Returns
+        OwnedGifts on success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param exclude_unsaved: Pass True to exclude gifts that aren't saved to the account's profile
+            page
+        :param exclude_saved: Pass True to exclude gifts that are saved to the account's profile
+            page
+        :param exclude_unlimited: Pass True to exclude gifts that can be purchased an unlimited number
+            of times
+        :param exclude_limited: Pass True to exclude gifts that can be purchased a limited number of
+            times
+        :param exclude_unique: Pass True to exclude unique gifts
+        :param sort_by_price: Pass True to sort results by gift price instead of send date. Sorting
+            is applied before pagination.
+        :param offset: Offset of the first entry to return as received from the previous
+            request; use empty string to get the first chunk of results
+        :param limit: The maximum number of gifts to be returned; 1-100. Defaults to 100
+        """
+        pass
+
+    async def convertGiftToStars(
+            self,
+            *,
+            business_connection_id: str,
+            owned_gift_id: str,
+    ) -> bool:
+        """
+        Converts a given regular gift to Telegram Stars. Requires the
+        can_convert_gifts_to_stars business bot right. Returns True on
+        success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param owned_gift_id: Unique identifier of the regular gift that should be converted to
+            Telegram Stars
+        """
+        pass
+
+    async def upgradeGift(
+            self,
+            *,
+            business_connection_id: str,
+            owned_gift_id: str,
+            keep_original_details: Optional[bool] = None,
+            star_count: Optional[int] = None,
+    ) -> bool:
+        """
+        Upgrades a given regular gift to a unique gift. Requires the
+        can_transfer_and_upgrade_gifts business bot right. Additionally
+        requires the can_transfer_stars business bot right if the upgrade is
+        paid. Returns True on success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param owned_gift_id: Unique identifier of the regular gift that should be upgraded to a
+            unique one
+        :param keep_original_details: Pass True to keep the original gift text, sender and receiver in the
+            upgraded gift
+        :param star_count: The amount of Telegram Stars that will be paid for the upgrade from
+            the business account balance. If gift.prepaid_upgrade_star_count > 0,
+            then pass 0, otherwise, the can_transfer_stars business bot right is
+            required and gift.upgrade_star_count must be passed.
+        """
+        pass
+
+    async def transferGift(
+            self,
+            *,
+            business_connection_id: str,
+            owned_gift_id: str,
+            new_owner_chat_id: int,
+            star_count: Optional[int] = None,
+    ) -> bool:
+        """
+        Transfers an owned unique gift to another user. Requires the
+        can_transfer_and_upgrade_gifts business bot right. Requires
+        can_transfer_stars business bot right if the transfer is paid. Returns
+        True on success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param owned_gift_id: Unique identifier of the regular gift that should be transferred
+        :param new_owner_chat_id: Unique identifier of the chat which will own the gift. The chat must
+            be active in the last 24 hours.
+        :param star_count: The amount of Telegram Stars that will be paid for the transfer from
+            the business account balance. If positive, then the can_transfer_stars
+            business bot right is required.
+        """
+        pass
+
+    async def postStory(
+            self,
+            *,
+            business_connection_id: str,
+            content: 'InputStoryContent',
+            active_period: int,
+            caption: Optional[str] = None,
+            parse_mode: Optional[str] = None,
+            caption_entities: Optional[List['MessageEntity']] = None,
+            areas: Optional[List['StoryArea']] = None,
+            post_to_chat_page: Optional[bool] = None,
+            protect_content: Optional[bool] = None,
+    ) -> 'Story':
+        """
+        Posts a story on behalf of a managed business account. Requires the
+        can_manage_stories business bot right. Returns Story on success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param content: Content of the story
+        :param active_period: Period after which the story is moved to the archive, in seconds; must
+            be one of 6 * 3600, 12 * 3600, 86400, or 2 * 86400
+        :param caption: Caption of the story, 0-2048 characters after entities parsing
+        :param parse_mode: Mode for parsing entities in the story caption. See formatting options
+            for more details.
+        :param caption_entities: A JSON-serialized list of special entities that appear in the caption,
+            which can be specified instead of parse_mode
+        :param areas: A JSON-serialized list of clickable areas to be shown on the story
+        :param post_to_chat_page: Pass True to keep the story accessible after it expires
+        :param protect_content: Pass True if the content of the story must be protected from
+            forwarding and screenshotting
+        """
+        pass
+
+    async def editStory(
+            self,
+            *,
+            business_connection_id: str,
+            story_id: int,
+            content: 'InputStoryContent',
+            caption: Optional[str] = None,
+            parse_mode: Optional[str] = None,
+            caption_entities: Optional[List['MessageEntity']] = None,
+            areas: Optional[List['StoryArea']] = None,
+    ) -> 'Story':
+        """
+        Edits a story previously posted by the bot on behalf of a managed
+        business account. Requires the can_manage_stories business bot right.
+        Returns Story on success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param story_id: Unique identifier of the story to edit
+        :param content: Content of the story
+        :param caption: Caption of the story, 0-2048 characters after entities parsing
+        :param parse_mode: Mode for parsing entities in the story caption. See formatting options
+            for more details.
+        :param caption_entities: A JSON-serialized list of special entities that appear in the caption,
+            which can be specified instead of parse_mode
+        :param areas: A JSON-serialized list of clickable areas to be shown on the story
+        """
+        pass
+
+    async def deleteStory(
+            self,
+            *,
+            business_connection_id: str,
+            story_id: int,
+    ) -> bool:
+        """
+        Deletes a story previously posted by the bot on behalf of a managed
+        business account. Requires the can_manage_stories business bot right.
+        Returns True on success.
+
+        :param business_connection_id: Unique identifier of the business connection
+        :param story_id: Unique identifier of the story to delete
+        """
+        pass
+
     async def editMessageText(
             self,
             *,
@@ -13080,6 +15536,28 @@ class TeleapiAsync(Protocol):
         """
         pass
 
+    async def editMessageChecklist(
+            self,
+            *,
+            business_connection_id: str,
+            chat_id: int,
+            message_id: int,
+            checklist: 'InputChecklist',
+            reply_markup: Optional['InlineKeyboardMarkup'] = None,
+    ) -> 'Message':
+        """
+        Use this method to edit a checklist on behalf of a connected business
+        account. On success, the edited Message is returned.
+
+        :param business_connection_id: Unique identifier of the business connection on behalf of which the
+            message will be sent
+        :param chat_id: Unique identifier for the target chat
+        :param message_id: Unique identifier for the target message
+        :param checklist: A JSON-serialized object for the new checklist
+        :param reply_markup: A JSON-serialized object for the new inline keyboard for the message
+        """
+        pass
+
     async def editMessageReplyMarkup(
             self,
             *,
@@ -13130,6 +15608,45 @@ class TeleapiAsync(Protocol):
         """
         pass
 
+    async def approveSuggestedPost(
+            self,
+            *,
+            chat_id: int,
+            message_id: int,
+            send_date: Optional[int] = None,
+    ) -> bool:
+        """
+        Use this method to approve a suggested post in a direct messages chat.
+        The bot must have the 'can_post_messages' administrator right in the
+        corresponding channel chat. Returns True on success.
+
+        :param chat_id: Unique identifier for the target direct messages chat
+        :param message_id: Identifier of a suggested post message to approve
+        :param send_date: Point in time (Unix timestamp) when the post is expected to be
+            published; omit if the date has already been specified when the
+            suggested post was created. If specified, then the date must be not
+            more than 2678400 seconds (30 days) in the future
+        """
+        pass
+
+    async def declineSuggestedPost(
+            self,
+            *,
+            chat_id: int,
+            message_id: int,
+            comment: Optional[str] = None,
+    ) -> bool:
+        """
+        Use this method to decline a suggested post in a direct messages chat.
+        The bot must have the 'can_manage_direct_messages' administrator right
+        in the corresponding channel chat. Returns True on success.
+
+        :param chat_id: Unique identifier for the target direct messages chat
+        :param message_id: Identifier of a suggested post message to decline
+        :param comment: Comment for the creator of the suggested post; 0-128 characters
+        """
+        pass
+
     async def deleteMessage(
             self,
             *,
@@ -13147,8 +15664,10 @@ class TeleapiAsync(Protocol):
         Bots granted can_post_messages permissions can delete outgoing
         messages in channels.- If the bot is an administrator of a group, it
         can delete any message there.- If the bot has can_delete_messages
-        permission in a supergroup or a channel, it can delete any message
-        there.Returns True on success.
+        administrator right in a supergroup or a channel, it can delete any
+        message there.- If the bot has can_manage_direct_messages
+        administrator right in a channel, it can delete any message in the
+        corresponding direct messages chat.Returns True on success.
 
         :param chat_id: Unique identifier for the target chat or username of the target
             channel (in the format @channelusername)
@@ -13181,11 +15700,13 @@ class TeleapiAsync(Protocol):
             sticker: Union['InputFile', str],
             business_connection_id: Optional[str] = None,
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             emoji: Optional[str] = None,
             disable_notification: Optional[bool] = None,
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional[Union['InlineKeyboardMarkup', 'ReplyKeyboardMarkup', 'ReplyKeyboardRemove', 'ForceReply']] = None,
     ) -> 'Message':
@@ -13205,6 +15726,8 @@ class TeleapiAsync(Protocol):
             message will be sent
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param emoji: Emoji associated with the sticker; only for just uploaded stickers
         :param disable_notification: Sends the message silently. Users will receive a notification with no
             sound.
@@ -13214,6 +15737,10 @@ class TeleapiAsync(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: Additional interface options. A JSON-serialized object for an inline
             keyboard, custom reply keyboard, instructions to remove a reply
@@ -13502,102 +16029,6 @@ class TeleapiAsync(Protocol):
         """
         pass
 
-    async def sendGift(
-            self,
-            *,
-            gift_id: str,
-            user_id: Optional[int] = None,
-            chat_id: Optional[Union[int, str]] = None,
-            pay_for_upgrade: Optional[bool] = None,
-            text: Optional[str] = None,
-            text_parse_mode: Optional[str] = None,
-            text_entities: Optional[List['MessageEntity']] = None,
-    ) -> bool:
-        """
-        Sends a gift to the given user or channel chat. The gift can't be
-        converted to Telegram Stars by the receiver. Returns True on success.
-
-        :param gift_id: Identifier of the gift
-        :param user_id: Required if chat_id is not specified. Unique identifier of the target
-            user who will receive the gift.
-        :param chat_id: Required if user_id is not specified. Unique identifier for the chat
-            or username of the channel (in the format @channelusername) that will
-            receive the gift.
-        :param pay_for_upgrade: Pass True to pay for the gift upgrade from the bot's balance, thereby
-            making the upgrade free for the receiver
-        :param text: Text that will be shown along with the gift; 0-128 characters
-        :param text_parse_mode: Mode for parsing entities in the text. See formatting options for more
-            details. Entities other than “bold”, “italic”, “underline”,
-            “strikethrough”, “spoiler”, and “custom_emoji” are ignored.
-        :param text_entities: A JSON-serialized list of special entities that appear in the gift
-            text. It can be specified instead of text_parse_mode. Entities other
-            than “bold”, “italic”, “underline”, “strikethrough”, “spoiler”, and
-            “custom_emoji” are ignored.
-        """
-        pass
-
-    async def verifyUser(
-            self,
-            *,
-            user_id: int,
-            custom_description: Optional[str] = None,
-    ) -> bool:
-        """
-        Verifies a user on behalf of the organization which is represented by
-        the bot. Returns True on success.
-
-        :param user_id: Unique identifier of the target user
-        :param custom_description: Custom description for the verification; 0-70 characters. Must be
-            empty if the organization isn't allowed to provide a custom
-            verification description.
-        """
-        pass
-
-    async def verifyChat(
-            self,
-            *,
-            chat_id: Union[int, str],
-            custom_description: Optional[str] = None,
-    ) -> bool:
-        """
-        Verifies a chat on behalf of the organization which is represented by
-        the bot. Returns True on success.
-
-        :param chat_id: Unique identifier for the target chat or username of the target
-            channel (in the format @channelusername)
-        :param custom_description: Custom description for the verification; 0-70 characters. Must be
-            empty if the organization isn't allowed to provide a custom
-            verification description.
-        """
-        pass
-
-    async def removeUserVerification(
-            self,
-            *,
-            user_id: int,
-    ) -> bool:
-        """
-        Removes verification from a user who is currently verified on behalf
-        of the organization represented by the bot. Returns True on success.
-
-        :param user_id: Unique identifier of the target user
-        """
-        pass
-
-    async def removeChatVerification(
-            self,
-            *,
-            chat_id: Union[int, str],
-    ) -> bool:
-        """
-        Removes verification from a chat that is currently verified on behalf
-        of the organization represented by the bot. Returns True on success.
-
-        :param chat_id: Unique identifier for the target chat or username of the target
-            channel (in the format @channelusername)
-        """
-        pass
-
     async def answerInlineQuery(
             self,
             *,
@@ -13678,6 +16109,7 @@ class TeleapiAsync(Protocol):
             currency: str,
             prices: List['LabeledPrice'],
             message_thread_id: Optional[int] = None,
+            direct_messages_topic_id: Optional[int] = None,
             provider_token: Optional[str] = None,
             max_tip_amount: Optional[int] = None,
             suggested_tip_amounts: Optional[List[int]] = None,
@@ -13698,6 +16130,7 @@ class TeleapiAsync(Protocol):
             protect_content: Optional[bool] = None,
             allow_paid_broadcast: Optional[bool] = None,
             message_effect_id: Optional[str] = None,
+            suggested_post_parameters: Optional['SuggestedPostParameters'] = None,
             reply_parameters: Optional['ReplyParameters'] = None,
             reply_markup: Optional['InlineKeyboardMarkup'] = None,
     ) -> 'Message':
@@ -13718,6 +16151,8 @@ class TeleapiAsync(Protocol):
             contain exactly one item for payments in Telegram Stars.
         :param message_thread_id: Unique identifier for the target message thread (topic) of the forum;
             for forum supergroups only
+        :param direct_messages_topic_id: Identifier of the direct messages topic to which the message will be
+            sent; required if the message is sent to a direct messages chat
         :param provider_token: Payment provider token, obtained via @BotFather. Pass an empty string
             for payments in Telegram Stars.
         :param max_tip_amount: The maximum accepted amount for tips in the smallest units of the
@@ -13768,6 +16203,10 @@ class TeleapiAsync(Protocol):
             relevant Stars will be withdrawn from the bot's balance
         :param message_effect_id: Unique identifier of the message effect to be added to the message;
             for private chats only
+        :param suggested_post_parameters: A JSON-serialized object containing the parameters of the suggested
+            post to send; for direct messages chats only. If the message is sent
+            as a reply to another suggested post, then that suggested post is
+            automatically declined.
         :param reply_parameters: Description of the message to reply to
         :param reply_markup: A JSON-serialized object for an inline keyboard. If empty, one 'Pay
             total price' button will be shown. If not empty, the first button must
@@ -13823,7 +16262,7 @@ class TeleapiAsync(Protocol):
             the parameter is used. Currently, it must always be 2592000 (30 days)
             if specified. Any number of subscriptions can be active for a given
             bot at the same time, including multiple concurrent subscriptions from
-            the same user. Subscription price must no exceed 2500 Telegram Stars.
+            the same user. Subscription price must no exceed 10000 Telegram Stars.
         :param max_tip_amount: The maximum accepted amount for tips in the smallest units of the
             currency (integer, not float/double). For example, for a maximum tip
             of US$ 1.45 pass max_tip_amount = 145. See the exp parameter in
@@ -13912,6 +16351,15 @@ class TeleapiAsync(Protocol):
             while you were busy filling out your payment details. Please choose a
             different color or garment!\"). Telegram will display this message to
             the user.
+        """
+        pass
+
+    async def getMyStarBalance(
+            self,
+    ) -> 'StarAmount':
+        """
+        A method to get the current Telegram Stars balance of the bot.
+        Requires no parameters. On success, returns a StarAmount object.
         """
         pass
 
@@ -14008,7 +16456,8 @@ class TeleapiAsync(Protocol):
         Use this method to send a game. On success, the sent Message is
         returned.
 
-        :param chat_id: Unique identifier for the target chat
+        :param chat_id: Unique identifier for the target chat. Games can't be sent to channel
+            direct messages chats and channel chats.
         :param game_short_name: Short name of the game, serves as the unique identifier for the game.
             Set up your games via @BotFather.
         :param business_connection_id: Unique identifier of the business connection on behalf of which the
